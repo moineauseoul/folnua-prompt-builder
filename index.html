@@ -1291,7 +1291,8 @@ document.getElementById('cut-group').querySelectorAll('.chip').forEach(btn => {
 let _activeMajor = '';
 let _activeMinor = '';
 let _activeGloss  = ''; // 광택 퀵셀렉터: matte / semi-glossy / glossy
-let _activeLength = ''; // 기장 퀵셀렉터
+let _activeLength   = ''; // 기장 퀵셀렉터
+let _detectedLength = ''; // 후면컷 슬롯2 분석 기장
 
 function stripGlossTag(str) {
   return str.replace(GLOSS_TAG_RE, '');
@@ -1612,7 +1613,7 @@ async function resizeImageForClaude(file) {
 /* ═══════════════════════════════════════════════
    10. Claude API 이미지 분석
 ═══════════════════════════════════════════════ */
-function buildAnalysisSystemPrompt() {
+function buildAnalysisSystemPrompt(includeLength = false) {
   const minor = _activeMinor || (_activeMajor === 'accessory' ? 'accessory' : '');
 
   const CAT_LABEL = {
@@ -1693,9 +1694,12 @@ Analyze the provided product images in detail and extract the following in Korea
    - Color combination if multicolor
 
 If multiple images are provided, use Slot 1 as the primary reference and extract additional details from Slots 2-5 to supplement the analysis.
+${includeLength ? `
+4. detected_length: Analyze Slot 2 image (the completed front product shot) to determine the garment's full length from top to hem. Return exactly one of: crop / semi-crop / waist-length / hip-length / regular / longline / mini / midi / maxi / ankle-length / full-length. Return empty string if undeterminable.
+` : ''}
+Respond in Korean JSON only: {"material": "", "details": "", "color": "", "sheen_level": ""${includeLength ? ', "detected_length": ""' : ''}}
+sheen_level: set to one of full_matte / semi_matte / semi_glossy / high_gloss for leather products; empty string for all other products.${includeLength ? '\ndetected_length: garment length detected from Slot 2 image.' : ''}`;
 
-Respond in Korean JSON only: {"material": "", "details": "", "color": "", "sheen_level": ""}
-sheen_level: set to one of full_matte / semi_matte / semi_glossy / high_gloss for leather products; empty string for all other products.`;
 }
 
 async function analyzeImageWithClaude(items) {
@@ -1705,6 +1709,12 @@ async function analyzeImageWithClaude(items) {
     setTimeout(hideBanner, 3000);
     return;
   }
+
+  _detectedLength = '';
+
+  const activeCut  = document.querySelector('#cut-group .chip.active')?.dataset.value || '';
+  const slot2Item  = items.find(i => i.index === 1);
+  const needsLength = activeCut === 'back' && !!slot2Item;
 
   setFieldsAnalyzing(true);
   showBanner('loading', `Claude AI가 이미지 ${items.length}장을 분석 중입니다...`);
@@ -1738,12 +1748,13 @@ async function analyzeImageWithClaude(items) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1500,
-        system: buildAnalysisSystemPrompt(),
+        system: buildAnalysisSystemPrompt(needsLength),
         messages: [{
           role: 'user',
           content: [
             { type: 'text', text: 'Analyze these product images and consolidate the result.' },
             ...(slotDescLines.length ? [{ type: 'text', text: slotDescLines.join('\n') }] : []),
+            ...(needsLength ? [{ type: 'text', text: 'Slot 2는 완성된 정면 결과물입니다. detected_length 필드에 Slot 2 이미지의 기장감을 분석해 반환해 주세요.' }] : []),
             ...imageContent,
           ],
         }],
@@ -1765,6 +1776,12 @@ async function analyzeImageWithClaude(items) {
     }
 
     const result = JSON.parse(match[0]);
+
+    if (needsLength && result.detected_length) {
+      const raw  = result.detected_length.trim().toLowerCase();
+      const DMAP = { 'waist-length': 'waist', 'hip-length': 'hip', 'ankle-length': 'ankle', 'full-length': 'full' };
+      _detectedLength = DMAP[raw] || (LENGTH_PROMPTS[raw] ? raw : '');
+    }
 
     document.getElementById('material').value   = result.material || '';
     document.getElementById('detail').value     = result.details  || '';
@@ -1907,7 +1924,7 @@ function buildPrompt(values) {
     .replace(/\b(body|curves?|curve[ds]?|fitted?|body-hugging|body-contouring|body[-\s]?curve[ds]?)\b/gi, '')
     .replace(/,\s*,/g, ',').replace(/\s+/g, ' ').trim().replace(/^,|,$/g, '').trim();
 
-  const lengthText = LENGTH_PROMPTS[_activeLength] || '';
+  const lengthText = LENGTH_PROMPTS[_activeLength] || LENGTH_PROMPTS[_detectedLength] || '';
   const detailWithLength = lengthText
     ? (cleanDetail ? `${cleanDetail}, ${lengthText}` : lengthText)
     : cleanDetail;
@@ -2091,10 +2108,11 @@ function resetAll() {
   });
   document.getElementById('custom-bg').value = '';
   document.getElementById('prompt-output').value = '';
-  _activeMajor = '';
-  _activeMinor  = '';
-  _activeGloss  = '';
-  _activeLength = '';
+  _activeMajor    = '';
+  _activeMinor    = '';
+  _activeGloss    = '';
+  _activeLength   = '';
+  _detectedLength = '';
   document.querySelectorAll('#category-main-group .segment-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('category-sub-wrap').classList.remove('visible');
   document.querySelectorAll('#gloss-group .gloss-chip').forEach(b => b.classList.remove('active'));
