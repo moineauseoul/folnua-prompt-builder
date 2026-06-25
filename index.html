@@ -447,6 +447,23 @@
     .chip:hover { border-color: var(--accent); color: var(--accent); }
     .chip.active { border-color: var(--accent); background: var(--accent); color: #fff; }
 
+    /* ── Gloss quick-select ── */
+    .gloss-row { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; }
+    .gloss-row-label { font-size: 10px; font-weight: 600; color: var(--gray-400); letter-spacing: .4px; text-transform: uppercase; flex-shrink: 0; margin-right: 2px; }
+    .gloss-chip {
+      padding: 3px 9px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 20px;
+      background: #fff;
+      font-family: inherit; font-size: 11px;
+      color: var(--gray-700);
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .gloss-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .gloss-chip.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+
     /* ── Color chips ── */
     .color-chip {
       width: 28px; height: 28px;
@@ -735,6 +752,12 @@
     <div class="field-row-2">
       <div>
         <p class="section-title">소재 (한글)</p>
+        <div class="gloss-row">
+          <span class="gloss-row-label">마감</span>
+          <button class="gloss-chip" data-value="matte">무광</button>
+          <button class="gloss-chip" data-value="semi-glossy">세미글로시</button>
+          <button class="gloss-chip" data-value="glossy">유광</button>
+        </div>
         <div class="field">
           <input type="text" id="material" placeholder="예: 100% 린넨, 울 혼방, 가죽..." />
         </div>
@@ -871,6 +894,18 @@ const BG_HEX = {
 const SUB_CATEGORIES = {
   'clothing':  [{ value: 'outer', label: '아우터' }, { value: 'top', label: '상의' }, { value: 'pants', label: '바지' }, { value: 'skirt', label: '스커트' }, { value: 'dress', label: '드레스' }],
   'accessory': [],
+};
+
+const GLOSS_TAGS = {
+  'matte':       '[무광 / matte finish] ',
+  'semi-glossy': '[세미글로시 / semi-glossy finish] ',
+  'glossy':      '[유광 / glossy finish] ',
+};
+const GLOSS_TAG_RE = /^\[(무광 \/ matte finish|세미글로시 \/ semi-glossy finish|유광 \/ glossy finish)\] */;
+const GLOSS_FINISH_PROMPTS = {
+  'matte':       'matte finish, no sheen, no specular highlights',
+  'semi-glossy': 'semi-glossy finish — visible natural sheen, soft specular highlights on surface. NOT matte.',
+  'glossy':      'high-gloss finish — strong specular highlights, mirror-like sheen. NOT matte.',
 };
 
 /* ═══════════════════════════════════════════════
@@ -1074,6 +1109,11 @@ bindSingleChip('cut-group');
 /* ── 카테고리 대분류/소분류 ── */
 let _activeMajor = '';
 let _activeMinor = '';
+let _activeGloss = ''; // 광택 퀵셀렉터: matte / semi-glossy / glossy
+
+function stripGlossTag(str) {
+  return str.replace(GLOSS_TAG_RE, '');
+}
 
 function getActiveCategory() {
   if (_activeMajor === 'accessory') return 'accessory';
@@ -1106,11 +1146,33 @@ function renderSubGroup(major) {
   subWrap.classList.add('visible');
 }
 
+document.querySelectorAll('.gloss-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val      = btn.dataset.value;
+    const isActive = btn.classList.contains('active');
+    document.querySelectorAll('.gloss-chip').forEach(b => b.classList.remove('active'));
+    const matEl = document.getElementById('material');
+    matEl.value = stripGlossTag(matEl.value);
+    if (isActive) {
+      _activeGloss = '';
+    } else {
+      btn.classList.add('active');
+      _activeGloss = val;
+      matEl.value = GLOSS_TAGS[val] + matEl.value;
+    }
+    saveState();
+  });
+});
+
 document.getElementById('category-main-group').querySelectorAll('.segment-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.getElementById('category-main-group').querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     _activeMajor = btn.dataset.value;
+    _activeGloss = '';
+    document.querySelectorAll('.gloss-chip').forEach(b => b.classList.remove('active'));
+    const matEl = document.getElementById('material');
+    matEl.value = stripGlossTag(matEl.value);
     renderSubGroup(_activeMajor);
     saveState();
   });
@@ -1574,6 +1636,18 @@ Respond in JSON only: {"material": "", "details": "", "color": ""}`,
   return translated;
 }
 
+function buildMatLine(mat, color, detail) {
+  // 글로스 태그는 번역 과정에서 달라질 수 있으므로 패턴으로 제거
+  let cleaned = mat.replace(/^\[(?:무광|세미글로시|유광|matte|semi-glossy|glossy)[^\]]*\]\s*/i, '');
+  if (_activeGloss === 'semi-glossy' || _activeGloss === 'glossy') {
+    cleaned = cleaned.replace(/\bmatte\b/gi, '').replace(/\s{2,}/g, ' ').trim().replace(/^[,\s]+|[,\s]+$/g, '');
+  }
+  const finishText = GLOSS_FINISH_PROMPTS[_activeGloss] || '';
+  return finishText
+    ? `Material: ${cleaned} (${finishText}). Color: ${color}. Key details: ${detail}.`
+    : `Material: ${cleaned}. Color: ${color}. Key details: ${detail}.`;
+}
+
 function buildPrompt(values) {
   const category = getActiveCategory() || 'top';
   const cut      = getActiveChip('cut-group')      || 'front';
@@ -1596,7 +1670,7 @@ function buildPrompt(values) {
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The garment is displayed suspended in air, showing its natural shape and vertical drape as if hanging.`,
       `Retouch and clean up the garment: remove all wrinkles, creases, and folds. Make the fabric look smooth and neatly pressed while maintaining a natural hanging drape.`,
       `Relight with soft, even studio lighting from the front. No shadows on the background.`,
-      `Material: ${material}. Color: ${color}. Key details: ${cleanDetail}.`,
+      buildMatLine(material, color, cleanDetail),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
       `Preserve the exact neckline shape from the reference image accurately. Do not alter the neckline design.`,
@@ -1612,7 +1686,7 @@ function buildPrompt(values) {
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The pants are displayed flat, showing their natural silhouette and shape from the front.`,
       `Remove excessive wrinkles but preserve the natural texture and character of the fabric. Keep center front and back creases crisp and clean.`,
       `Relight with soft, even studio lighting from the front. No shadows on the background.`,
-      `Material: ${material}. Color: ${color}. Key details: ${cleanDetail}.`,
+      buildMatLine(material, color, cleanDetail),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
       `Any brand logo or emblem must be small and subtle, exactly as shown in the reference. Do not enlarge or exaggerate the logo.`,
@@ -1626,7 +1700,7 @@ function buildPrompt(values) {
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The skirt is displayed suspended in air, showing its natural drape and volume as if hanging.`,
       `Retouch and clean up the garment but preserve natural fabric drape and flow. Keep pleats, gathers, and volume shapes intact.`,
       `Relight with soft, even studio lighting from the front. Subtle natural shadow to emphasize volume and shape.`,
-      `Material: ${material}. Color: ${color}. Key details: ${cleanDetail}.`,
+      buildMatLine(material, color, cleanDetail),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
       `Any brand logo or emblem must be small and subtle, exactly as shown in the reference. Do not enlarge or exaggerate the logo.`,
@@ -1640,7 +1714,7 @@ function buildPrompt(values) {
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The dress is displayed suspended in air, showing its full length, natural shape and drape as if hanging.`,
       `Retouch and clean up the garment but preserve natural fabric drape and flow. Remove excessive wrinkles while keeping the natural movement of the fabric intact.`,
       `Relight with soft, even studio lighting from the front. Subtle natural shadow to emphasize volume and length.`,
-      `Material: ${material}. Color: ${color}. Key details: ${cleanDetail}.`,
+      buildMatLine(material, color, cleanDetail),
       `Preserve the exact silhouette, design, and full length proportions of the dress.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
       `Preserve the exact neckline shape from the reference image accurately. Do not alter the neckline design.`,
@@ -1663,7 +1737,7 @@ function buildPrompt(values) {
       outerRetouchLine,
       `Relight with soft, even studio lighting from the front. No shadows on the background.`,
       `IMPORTANT: Preserve the EXACT proportions and aspect ratio of the original garment — do NOT stretch, elongate, or compress the garment vertically or horizontally. The sleeve length, body length, and shoulder width ratio must match the reference image precisely.`,
-      `Material: ${material}. Color: ${color}. Key details: ${cleanDetail}.`,
+      buildMatLine(material, color, cleanDetail),
       ...(hasTextureEmphasis && isSuede ? [`The fabric must read as real suede, not wool: visible short brushed nap, velvety directional pile, irregular suede grain, matte surface, and subtle light/dark variation when the pile changes direction. Avoid any felted, woolly, fuzzy coat, tweed, melton, fleece, or boiled-wool appearance.`] : []),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
@@ -1679,7 +1753,7 @@ function buildPrompt(values) {
       `Remove the existing background completely and replace with a solid ${bg} background.`,
       `Keep the product exactly as shown, ${cutView} view, centered composition.`,
       `Relight with soft, even studio lighting. Subtle shadow beneath the product only.`,
-      `Material: ${material}. Color: ${color}. Key details: ${values.detail}.`,
+      buildMatLine(material, color, values.detail),
       `Preserve exact product shape, proportions, surface texture, and logo detail accurately.`,
       `Ensure logo remains sharp and clearly readable.`,
       `Clean e-commerce product shot. No stylization, no artistic effects.`,
@@ -1757,8 +1831,10 @@ function resetAll() {
   document.getElementById('prompt-output').value = '';
   _activeMajor = '';
   _activeMinor = '';
+  _activeGloss = '';
   document.querySelectorAll('#category-main-group .segment-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('category-sub-wrap').classList.remove('visible');
+  document.querySelectorAll('.gloss-chip').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('#cut-group .chip').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('#bg-group .color-chip').forEach(b => b.classList.remove('active'));
   localStorage.removeItem('ppb_state');
@@ -1808,6 +1884,7 @@ function saveState() {
       detailRefs: [1,2,3,4].map(i => document.getElementById(`detail-ref-${i}`)?.value || ''),
       extras:     [...document.querySelectorAll('.extra-opt')].map(cb => cb.checked),
       prompt:     document.getElementById('prompt-output').value,
+      gloss:      _activeGloss,
     };
     localStorage.setItem(LS_STATE, JSON.stringify(state));
   } catch (_) {}
@@ -1896,6 +1973,10 @@ async function restoreState() {
       if (s.prompt) {
         document.getElementById('prompt-output').value = s.prompt;
         setCopyEnabled(true);
+      }
+      if (s.gloss) {
+        _activeGloss = s.gloss;
+        document.querySelector(`.gloss-chip[data-value="${s.gloss}"]`)?.classList.add('active');
       }
     }
   } catch (_) {}
