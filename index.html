@@ -449,7 +449,7 @@
     .chip.active { border-color: var(--accent); background: var(--accent); color: #fff; }
 
     /* ── Gloss quick-select ── */
-    .section-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .section-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; min-height: 24px; }
     .section-title-row .section-title { margin-bottom: 0; }
     .gloss-chip-inline-group { display: flex; gap: 4px; }
     .gloss-chip {
@@ -766,7 +766,9 @@
         </div>
       </div>
       <div>
-        <p class="section-title">컬러 (한글)</p>
+        <div class="section-title-row">
+          <p class="section-title">컬러 (한글)</p>
+        </div>
         <div class="field">
           <input type="text" id="color-text" placeholder="예: 오프화이트, 버건디, 네이비..." />
         </div>
