@@ -1970,13 +1970,11 @@ function debouncedSave() {
 function saveState() {
   try {
     const state = {
-      material:   document.getElementById('material').value,
+      material:   stripGlossTag(document.getElementById('material').value),
       detail:     document.getElementById('detail').value,
       color:      document.getElementById('color-text').value,
       detailRefs: [1,2,3,4].map(i => document.getElementById(`detail-ref-${i}`)?.value || ''),
-      extras:     [...document.querySelectorAll('.extra-opt')].map(cb => cb.checked),
       prompt:     document.getElementById('prompt-output').value,
-      gloss:      _activeGloss,
     };
     localStorage.setItem(LS_STATE, JSON.stringify(state));
   } catch (_) {}
@@ -2058,17 +2056,9 @@ async function restoreState() {
         const el = document.getElementById(`detail-ref-${i + 1}`);
         if (el && val) el.value = val;
       });
-      if (Array.isArray(s.extras)) {
-        const cbs = [...document.querySelectorAll('.extra-opt')];
-        s.extras.forEach((checked, i) => { if (cbs[i]) cbs[i].checked = checked; });
-      }
       if (s.prompt) {
         document.getElementById('prompt-output').value = s.prompt;
         setCopyEnabled(true);
-      }
-      if (s.gloss) {
-        _activeGloss = s.gloss;
-        document.querySelector(`.gloss-chip[data-value="${s.gloss}"]`)?.classList.add('active');
       }
     }
   } catch (_) {}
