@@ -1219,13 +1219,18 @@ function bindSingleChip(groupId) {
 }
 bindSingleChip('cut-group');
 
+const BACK_AUTO_TEXT = '완성된 정면 결과물 — 조명 톤, 제품 크기 비율, 실루엣, 기장감, 색상, 소재 질감 참고';
+
 function updateSlotPlaceholders(cut) {
   const hint   = document.getElementById('slot-back-hint');
   const ref0   = document.getElementById('detail-ref-0');
   const defaultDetail = '위치 포함 필수 예: 하단 우측 금속 로고';
   if (cut === 'back') {
     hint?.classList.add('visible');
-    if (ref0) ref0.placeholder = '완성된 정면 결과물 이미지를 넣어주세요 (원본 아님)';
+    if (ref0) {
+      ref0.placeholder = '완성된 정면 결과물 이미지를 넣어주세요 (원본 아님)';
+      if (!ref0.value.trim()) ref0.value = BACK_AUTO_TEXT;
+    }
     const ref1 = document.getElementById('detail-ref-1');
     if (ref1) ref1.placeholder = '후면 원본 사진 (소재/형태 참고용)';
     [2, 3, 4].forEach(i => {
@@ -1234,12 +1239,16 @@ function updateSlotPlaceholders(cut) {
     });
   } else {
     hint?.classList.remove('visible');
-    if (ref0) ref0.placeholder = '원본 이미지 (만들고 싶은 컷 방향과 동일하게)';
+    if (ref0) {
+      ref0.placeholder = '원본 이미지 (만들고 싶은 컷 방향과 동일하게)';
+      if (ref0.value === BACK_AUTO_TEXT) ref0.value = '';
+    }
     [1, 2, 3, 4].forEach(i => {
       const el = document.getElementById(`detail-ref-${i}`);
       if (el) el.placeholder = defaultDetail;
     });
   }
+  saveState();
 }
 document.getElementById('cut-group').querySelectorAll('.chip').forEach(btn => {
   btn.addEventListener('click', () => updateSlotPlaceholders(btn.dataset.value));
