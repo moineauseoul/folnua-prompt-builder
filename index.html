@@ -1796,7 +1796,7 @@ function buildPrompt(values) {
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The garment is displayed suspended in air, showing its natural shape and vertical drape as if hanging.`,
       isLeatherVinyl
-        ? `Retouch and enhance the garment professionally: clean up the overall appearance, remove lint, dust, and minor distracting artifacts. Relight with soft even studio lighting. Preserve natural leather/vinyl wrinkles and surface texture — do NOT flatten or remove natural material creases. The wrinkles are part of the material character and must remain visible.`
+        ? `Retouch and enhance the garment professionally: Straighten and align the overall garment shape — make pocket lines, hems, seams, and edges clean, even, and symmetrical. Fix any uneven or misaligned structural elements. Remove excessive or distracting wrinkles, but preserve only natural, subtle leather/vinyl creases that reflect the material character. The result should look clean and well-presented, not over-smoothed or flat. Relight with soft, even studio lighting from the front. No shadows on the background. Preserve natural leather/vinyl surface texture and material depth.`
         : `Retouch and clean up the garment: remove all wrinkles, creases, and folds. Make the fabric look smooth and neatly pressed while maintaining a natural hanging drape.`,
       ...(isLeatherVinyl ? [] : [`Relight with soft, even studio lighting from the front. No shadows on the background.`]),
       buildMatLine(material, color, cleanDetail),
@@ -1860,7 +1860,7 @@ function buildPrompt(values) {
     const outerRetouchLine = isSuede
       ? `Retouch and clean up the garment: remove major wrinkles and creases, but preserve the natural suede nap, directional grain, subtle mottled shading, and soft brushed surface. Do NOT make the fabric look like smooth wool, felt, boiled wool, fleece, or a flat coat fabric.`
       : isLeatherVinyl
-      ? `Retouch and enhance the garment professionally: clean up the overall appearance, remove lint, dust, and minor distracting artifacts. Relight with soft even studio lighting. Preserve natural leather/vinyl wrinkles and surface texture — do NOT flatten or remove natural material creases. The wrinkles are part of the material character and must remain visible.`
+      ? `Retouch and enhance the garment professionally: Straighten and align the overall garment shape — make pocket lines, hems, seams, and edges clean, even, and symmetrical. Fix any uneven or misaligned structural elements. Remove excessive or distracting wrinkles, but preserve only natural, subtle leather/vinyl creases that reflect the material character. The result should look clean and well-presented, not over-smoothed or flat. Relight with soft, even studio lighting from the front. No shadows on the background. Preserve natural leather/vinyl surface texture and material depth.`
       : `Retouch and clean up the garment: remove all wrinkles and creases. Make the fabric look smooth and neatly pressed while maintaining structured shape.`;
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
