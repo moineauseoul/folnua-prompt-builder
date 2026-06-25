@@ -1229,12 +1229,18 @@ document.querySelectorAll('.gloss-chip').forEach(btn => {
     document.querySelectorAll('.gloss-chip').forEach(b => b.classList.remove('active'));
     const matEl = document.getElementById('material');
     matEl.value = stripGlossTag(matEl.value);
+    const colorEl = document.getElementById('color-text');
     if (isActive) {
       _activeGloss = '';
     } else {
       btn.classList.add('active');
       _activeGloss = val;
       matEl.value = GLOSS_TAGS[val] + matEl.value;
+      if (val === 'semi-glossy' || val === 'glossy') {
+        colorEl.value = colorEl.value
+          .replace(/\bmatte\b|무광|매트/gi, '')
+          .replace(/\s{2,}/g, ' ').replace(/^[\s,\/]+|[\s,\/]+$/g, '').trim();
+      }
     }
     saveState();
   });
@@ -1749,9 +1755,8 @@ function buildPrompt(values) {
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The garment is displayed suspended in air, showing its natural shape and vertical drape as if hanging.`,
       isLeatherVinyl
-        ? `Lightly retouch the garment: preserve natural leather/vinyl wrinkles and surface texture — do NOT smooth out or remove natural material creases. Maintain the authentic material character.`
+        ? `Remove background and relight professionally. For the garment itself: preserve natural leather/vinyl wrinkles and surface texture — do NOT smooth out or remove natural material creases. Clean up only dirt, dust, or major distracting artifacts while maintaining authentic material character.`
         : `Retouch and clean up the garment: remove all wrinkles, creases, and folds. Make the fabric look smooth and neatly pressed while maintaining a natural hanging drape.`,
-      ...(isLeatherVinyl ? [`IMPORTANT: Do NOT stretch or elongate the garment. Preserve exact body length and sleeve length as shown in the reference image.`] : []),
       `Relight with soft, even studio lighting from the front. No shadows on the background.`,
       buildMatLine(material, color, cleanDetail),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
@@ -1814,7 +1819,7 @@ function buildPrompt(values) {
     const outerRetouchLine = isSuede
       ? `Retouch and clean up the garment: remove major wrinkles and creases, but preserve the natural suede nap, directional grain, subtle mottled shading, and soft brushed surface. Do NOT make the fabric look like smooth wool, felt, boiled wool, fleece, or a flat coat fabric.`
       : isLeatherVinyl
-      ? `Lightly retouch the garment: preserve natural leather/vinyl wrinkles and surface texture — do NOT smooth out or remove natural material creases. Maintain the authentic material character.`
+      ? `Remove background and relight professionally. For the garment itself: preserve natural leather/vinyl wrinkles and surface texture — do NOT smooth out or remove natural material creases. Clean up only dirt, dust, or major distracting artifacts while maintaining authentic material character.`
       : `Retouch and clean up the garment: remove all wrinkles and creases. Make the fabric look smooth and neatly pressed while maintaining structured shape.`;
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
@@ -1822,7 +1827,6 @@ function buildPrompt(values) {
       outerRetouchLine,
       `Relight with soft, even studio lighting from the front. No shadows on the background.`,
       `IMPORTANT: Preserve the EXACT proportions and aspect ratio of the original garment — do NOT stretch, elongate, or compress the garment vertically or horizontally. The sleeve length, body length, and shoulder width ratio must match the reference image precisely.`,
-      ...(isLeatherVinyl ? [`IMPORTANT: Do NOT stretch or elongate the garment. Preserve exact body length and sleeve length as shown in the reference image.`] : []),
       buildMatLine(material, color, cleanDetail),
       ...(hasTextureEmphasis && isSuede ? [`The fabric must read as real suede, not wool: visible short brushed nap, velvety directional pile, irregular suede grain, matte surface, and subtle light/dark variation when the pile changes direction. Avoid any felted, woolly, fuzzy coat, tweed, melton, fleece, or boiled-wool appearance.`] : []),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
