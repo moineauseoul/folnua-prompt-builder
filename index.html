@@ -321,8 +321,9 @@
     }
     .detail-ref-input:focus { border-color: var(--accent); }
     .detail-ref-input::placeholder { color: var(--gray-400); }
-    .slot-back-hint { font-size: 12px; color: #999; text-align: center; margin-top: 6px; display: none; }
-    .slot-back-hint.visible { display: block; }
+    .slot-inner-hint { font-size: 13px; color: #666; text-align: center; line-height: 1.8; display: none; margin-top: 4px; }
+    .slot-inner-hint.visible { display: block; }
+    .upload-slot:has(.thumb-wrap.has-image) .slot-inner-hint { display: none !important; }
 
     /* Analysis */
     .upload-footer {
@@ -1166,11 +1167,11 @@ mainLbl.className = 'slot-label';
 mainLbl.textContent = '메인 이미지';
 const mainSlot = createUploadSlot(0);
 mainSlot.classList.add('upload-slot-main');
-const slotBackHint = document.createElement('span');
-slotBackHint.id = 'slot-back-hint';
-slotBackHint.className = 'slot-back-hint';
-slotBackHint.textContent = '💡 후면컷은 슬롯 1에 후면 원본, 슬롯 2에 완성된 정면 결과물을 넣어주세요.';
-mainSlot.querySelector('label').appendChild(slotBackHint);
+const slotHint0 = document.createElement('div');
+slotHint0.id = 'slot-inner-hint-0';
+slotHint0.className = 'slot-inner-hint';
+slotHint0.innerHTML = '📷 슬롯 1<br>후면 원본 이미지<br>(질감/색상 기준)';
+mainSlot.querySelector('label').appendChild(slotHint0);
 const mainRefInput = document.createElement('input');
 mainRefInput.type = 'text';
 mainRefInput.id = 'detail-ref-0';
@@ -1196,6 +1197,13 @@ for (let i = 1; i < MAX_IMAGES; i++) {
   lbl.textContent = `디테일 ${i}`;
   const detailSlot = createUploadSlot(i);
   detailSlot.classList.add('upload-slot-detail');
+  if (i === 1) {
+    const slotHint1 = document.createElement('div');
+    slotHint1.id = 'slot-inner-hint-1';
+    slotHint1.className = 'slot-inner-hint';
+    slotHint1.innerHTML = '✅ 슬롯 2<br>완성된 정면 결과물<br>(조명/비율/실루엣/기장감 참고)';
+    detailSlot.querySelector('label').appendChild(slotHint1);
+  }
   thumbCol.appendChild(lbl);
   thumbCol.appendChild(detailSlot);
 
@@ -1255,11 +1263,13 @@ bindSingleChip('cut-group');
 const BACK_AUTO_TEXT = '후면 원본 — 소재/질감/색상 기준';
 
 function updateSlotPlaceholders(cut) {
-  const hint   = document.getElementById('slot-back-hint');
+  const hint0  = document.getElementById('slot-inner-hint-0');
+  const hint1  = document.getElementById('slot-inner-hint-1');
   const ref0   = document.getElementById('detail-ref-0');
   const defaultDetail = '위치 포함 필수 예: 하단 우측 금속 로고';
   if (cut === 'back') {
-    hint?.classList.add('visible');
+    hint0?.classList.add('visible');
+    hint1?.classList.add('visible');
     if (ref0) {
       ref0.placeholder = '후면 원본 이미지 (질감/색상 기준)';
       if (!ref0.value.trim()) ref0.value = BACK_AUTO_TEXT;
@@ -1271,7 +1281,8 @@ function updateSlotPlaceholders(cut) {
       if (el) el.placeholder = defaultDetail;
     });
   } else {
-    hint?.classList.remove('visible');
+    hint0?.classList.remove('visible');
+    hint1?.classList.remove('visible');
     if (ref0) {
       ref0.placeholder = '원본 이미지 (만들고 싶은 컷 방향과 동일하게)';
       if (ref0.value === BACK_AUTO_TEXT) ref0.value = '';
