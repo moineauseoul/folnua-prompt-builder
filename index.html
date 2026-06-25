@@ -1821,6 +1821,7 @@ function buildPrompt(values) {
         ? `Retouch and enhance the garment professionally: clean up the overall appearance, remove lint, dust, and minor distracting artifacts. Relight with soft, even studio lighting from the front. No shadows on the background. Preserve natural leather/vinyl wrinkles and surface texture — do NOT flatten or remove natural material creases. The wrinkles are part of the material character and must remain visible.`
         : `Retouch and clean up the garment: remove all wrinkles, creases, and folds. Make the fabric look smooth and neatly pressed while maintaining a natural hanging drape.`,
       ...(isLeatherVinyl ? [] : [`Relight with soft, even studio lighting from the front. No shadows on the background.`]),
+      ...(isLeatherVinyl ? [`IMPORTANT: Preserve the EXACT proportions and aspect ratio of the original garment — do NOT stretch, elongate, or compress the garment vertically or horizontally. The sleeve length, body length, and shoulder width ratio must match the reference image precisely.`] : []),
       buildMatLine(material, color, cleanDetail),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
