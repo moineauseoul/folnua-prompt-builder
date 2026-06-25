@@ -448,10 +448,11 @@
     .chip.active { border-color: var(--accent); background: var(--accent); color: #fff; }
 
     /* ── Gloss quick-select ── */
-    .gloss-row { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; }
-    .gloss-row-label { font-size: 10px; font-weight: 600; color: var(--gray-400); letter-spacing: .4px; text-transform: uppercase; flex-shrink: 0; margin-right: 2px; }
+    .section-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .section-title-row .section-title { margin-bottom: 0; }
+    .gloss-chip-inline-group { display: flex; gap: 4px; }
     .gloss-chip {
-      padding: 3px 9px;
+      padding: 2px 8px;
       border: 1.5px solid var(--gray-200);
       border-radius: 20px;
       background: #fff;
@@ -751,12 +752,13 @@
 
     <div class="field-row-2">
       <div>
-        <p class="section-title">소재 (한글)</p>
-        <div class="gloss-row">
-          <span class="gloss-row-label">마감</span>
-          <button class="gloss-chip" data-value="matte">무광</button>
-          <button class="gloss-chip" data-value="semi-glossy">세미글로시</button>
-          <button class="gloss-chip" data-value="glossy">유광</button>
+        <div class="section-title-row">
+          <p class="section-title">소재 (한글)</p>
+          <div class="gloss-chip-inline-group">
+            <button class="gloss-chip" data-value="matte">무광</button>
+            <button class="gloss-chip" data-value="semi-glossy">세미글로시</button>
+            <button class="gloss-chip" data-value="glossy">유광</button>
+          </div>
         </div>
         <div class="field">
           <input type="text" id="material" placeholder="예: 100% 린넨, 울 혼방, 가죽..." />
