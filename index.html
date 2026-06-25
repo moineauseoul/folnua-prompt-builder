@@ -467,6 +467,9 @@
     }
     .gloss-chip:hover { border-color: var(--accent); color: var(--accent); }
     .gloss-chip.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .quick-select-row { display: flex; gap: 20px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .quick-select-col { display: flex; align-items: center; gap: 6px; }
+    .quick-select-col .section-title { margin-bottom: 0; white-space: nowrap; }
 
     /* ── Color chips ── */
     .color-chip {
@@ -568,7 +571,7 @@
     #prompt-output {
       width: 100%;
       flex: 1;
-      min-height: 120px;
+      min-height: 84px;
       overflow-y: auto;
       padding: 14px;
       border: 1.5px solid var(--gray-200);
@@ -800,25 +803,31 @@
 
     <div class="field-row-2">
       <div>
-        <div class="section-title-row">
-          <p class="section-title">소재 (한글)</p>
-          <div class="gloss-chip-inline-group">
-            <button class="gloss-chip" data-value="matte">무광</button>
-            <button class="gloss-chip" data-value="semi-glossy">세미글로시</button>
-            <button class="gloss-chip" data-value="glossy">유광</button>
-          </div>
-        </div>
+        <p class="section-title">소재 (한글)</p>
         <div class="field">
           <input type="text" id="material" placeholder="예: 100% 린넨, 울 혼방, 가죽..." />
         </div>
       </div>
       <div>
-        <div class="section-title-row">
-          <p class="section-title">컬러 (한글)</p>
-        </div>
+        <p class="section-title">컬러 (한글)</p>
         <div class="field">
           <input type="text" id="color-text" placeholder="예: 오프화이트, 버건디, 네이비..." />
         </div>
+      </div>
+    </div>
+
+    <div class="quick-select-row">
+      <div class="quick-select-col">
+        <p class="section-title">광택</p>
+        <div class="gloss-chip-inline-group" id="gloss-group">
+          <button class="gloss-chip" data-value="matte">무광</button>
+          <button class="gloss-chip" data-value="semi-glossy">세미글로시</button>
+          <button class="gloss-chip" data-value="glossy">유광</button>
+        </div>
+      </div>
+      <div class="quick-select-col" id="length-col" style="display:none;">
+        <p class="section-title">기장</p>
+        <div class="gloss-chip-inline-group" id="length-group"></div>
       </div>
     </div>
 
@@ -986,6 +995,30 @@ const GLOSS_FINISH_PROMPTS = {
   'matte':       'matte finish, no sheen, no specular highlights',
   'semi-glossy': 'semi-glossy finish — visible natural sheen, soft specular highlights on surface. NOT matte.',
   'glossy':      'high-gloss finish — strong specular highlights, mirror-like sheen. NOT matte.',
+};
+
+const LENGTH_TAG_RE = /\s*\[기장: [^\]]+\]/g;
+const LENGTH_PROMPTS = {
+  'crop':          'cropped length, above the waist',
+  'semi-crop':     'semi-crop length, at the waist',
+  'waist':         'waist-length',
+  'hip':           'hip-length',
+  'regular':       'regular length',
+  'longline':      'longline, below the hip',
+  'three-quarter': '3/4 length, above the knee',
+  'knee':          'knee-length',
+  'midi':          'midi length, mid-calf',
+  'maxi':          'maxi length, ankle',
+  'mini':          'mini length, mid-thigh',
+  'ankle':         'ankle-length',
+  'full':          'full-length',
+};
+const LENGTH_OPTIONS = {
+  top:   [['크롭','crop'],['세미크롭','semi-crop'],['허리기장','waist'],['힙기장','hip'],['일반','regular'],['롱라인','longline']],
+  outer: [['크롭','crop'],['힙기장','hip'],['3/4기장','three-quarter'],['무릎기장','knee'],['미디','midi'],['맥시','maxi']],
+  pants: [['미니','mini'],['미디','midi'],['맥시','maxi'],['발목','ankle'],['풀렝스','full']],
+  skirt: [['미니','mini'],['미디','midi'],['맥시','maxi'],['발목','ankle'],['풀렝스','full']],
+  dress: [['미니','mini'],['미디','midi'],['맥시','maxi'],['발목','ankle'],['풀렝스','full']],
 };
 
 /* ═══════════════════════════════════════════════
@@ -1257,7 +1290,8 @@ document.getElementById('cut-group').querySelectorAll('.chip').forEach(btn => {
 /* ── 카테고리 대분류/소분류 ── */
 let _activeMajor = '';
 let _activeMinor = '';
-let _activeGloss = ''; // 광택 퀵셀렉터: matte / semi-glossy / glossy
+let _activeGloss  = ''; // 광택 퀵셀렉터: matte / semi-glossy / glossy
+let _activeLength = ''; // 기장 퀵셀렉터
 
 function stripGlossTag(str) {
   return str.replace(GLOSS_TAG_RE, '');
@@ -1274,6 +1308,7 @@ function renderSubGroup(major) {
   const subs = SUB_CATEGORIES[major] || [];
   subGroup.innerHTML = '';
   _activeMinor = '';
+  updateLengthChips('');
   if (!subs.length) {
     subWrap.classList.remove('visible');
     return;
@@ -1287,6 +1322,7 @@ function renderSubGroup(major) {
       subGroup.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       _activeMinor = value;
+      updateLengthChips(value);
       saveState();
     });
     subGroup.appendChild(btn);
@@ -1294,11 +1330,51 @@ function renderSubGroup(major) {
   subWrap.classList.add('visible');
 }
 
-document.querySelectorAll('.gloss-chip').forEach(btn => {
+function updateLengthChips(minor) {
+  const col   = document.getElementById('length-col');
+  const group = document.getElementById('length-group');
+  if (!col || !group) return;
+  const opts = LENGTH_OPTIONS[minor];
+  _activeLength = '';
+  const ref0 = document.getElementById('detail-ref-0');
+  if (ref0) ref0.value = ref0.value.replace(LENGTH_TAG_RE, '').trim();
+  if (!opts) { col.style.display = 'none'; return; }
+  group.innerHTML = '';
+  opts.forEach(([label, val]) => {
+    const btn = document.createElement('button');
+    btn.className = 'gloss-chip';
+    btn.dataset.value = val;
+    btn.textContent = label;
+    btn.addEventListener('click', () => {
+      const isActive = _activeLength === val;
+      _activeLength = isActive ? '' : val;
+      group.querySelectorAll('.gloss-chip').forEach(b => b.classList.toggle('active', b.dataset.value === _activeLength));
+      updateLengthTag();
+      saveState();
+    });
+    group.appendChild(btn);
+  });
+  col.style.display = '';
+}
+
+function updateLengthTag() {
+  const ref0 = document.getElementById('detail-ref-0');
+  if (!ref0) return;
+  let val = ref0.value.replace(LENGTH_TAG_RE, '').trim();
+  if (_activeLength) {
+    const opts = LENGTH_OPTIONS[getActiveCategory()] || [];
+    const opt  = opts.find(([, v]) => v === _activeLength);
+    const lbl  = opt ? opt[0] : _activeLength;
+    val = val ? `${val} [기장: ${lbl}]` : `[기장: ${lbl}]`;
+  }
+  ref0.value = val;
+}
+
+document.querySelectorAll('#gloss-group .gloss-chip').forEach(btn => {
   btn.addEventListener('click', () => {
     const val      = btn.dataset.value;
     const isActive = btn.classList.contains('active');
-    document.querySelectorAll('.gloss-chip').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#gloss-group .gloss-chip').forEach(b => b.classList.remove('active'));
     const matEl = document.getElementById('material');
     matEl.value = stripGlossTag(matEl.value);
     const colorEl = document.getElementById('color-text');
@@ -1324,7 +1400,7 @@ document.getElementById('category-main-group').querySelectorAll('.segment-btn').
     btn.classList.add('active');
     _activeMajor = btn.dataset.value;
     _activeGloss = '';
-    document.querySelectorAll('.gloss-chip').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#gloss-group .gloss-chip').forEach(b => b.classList.remove('active'));
     const matEl = document.getElementById('material');
     matEl.value = stripGlossTag(matEl.value);
     const lvOpt = document.getElementById('leather-vinyl-opt');
@@ -1831,6 +1907,11 @@ function buildPrompt(values) {
     .replace(/\b(body|curves?|curve[ds]?|fitted?|body-hugging|body-contouring|body[-\s]?curve[ds]?)\b/gi, '')
     .replace(/,\s*,/g, ',').replace(/\s+/g, ' ').trim().replace(/^,|,$/g, '').trim();
 
+  const lengthText = LENGTH_PROMPTS[_activeLength] || '';
+  const detailWithLength = lengthText
+    ? (cleanDetail ? `${cleanDetail}, ${lengthText}` : lengthText)
+    : cleanDetail;
+
   const MARGIN_LINE = `Center the garment with equal left and right margins. Top margin: approximately 8% of image height. Bottom margin: approximately 8% of image height. IMPORTANT: The ENTIRE garment must be fully visible — do NOT crop the hem, sleeves, or any part of the garment. Show the complete product from top to bottom.`;
 
   let lines;
@@ -1845,7 +1926,7 @@ function buildPrompt(values) {
         : `Retouch and clean up the garment: remove all wrinkles, creases, and folds. Make the fabric look smooth and neatly pressed while maintaining its natural shape and structure.`,
       ...(isLeatherVinyl ? [] : [`Relight with soft, even studio lighting from the front. No shadows on the background.`]),
       `IMPORTANT: Preserve the EXACT proportions and aspect ratio of the original garment — do NOT stretch, elongate, or compress the garment vertically or horizontally. The sleeve length, body length, and shoulder width ratio must match the reference image precisely.`,
-      buildMatLine(material, color, cleanDetail),
+      buildMatLine(material, color, detailWithLength),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
       `Preserve the exact neckline shape from the reference image accurately. Do not alter the neckline design.`,
@@ -1861,7 +1942,7 @@ function buildPrompt(values) {
       ...(cut !== 'detail' ? [MARGIN_LINE] : []),
       `Remove excessive wrinkles but preserve the natural texture and character of the fabric. Keep center front and back creases crisp and clean.`,
       `Relight with soft, even studio lighting from the front. No shadows on the background.`,
-      buildMatLine(material, color, cleanDetail),
+      buildMatLine(material, color, detailWithLength),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
       `Any brand logo or emblem must be small and subtle, exactly as shown in the reference. Do not enlarge or exaggerate the logo.`,
@@ -1876,7 +1957,7 @@ function buildPrompt(values) {
       ...(cut !== 'detail' ? [MARGIN_LINE] : []),
       `Retouch and clean up the garment but preserve natural fabric drape and flow. Keep pleats, gathers, and volume shapes intact.`,
       `Relight with soft, even studio lighting from the front. Subtle natural shadow to emphasize volume and shape.`,
-      buildMatLine(material, color, cleanDetail),
+      buildMatLine(material, color, detailWithLength),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
       `Any brand logo or emblem must be small and subtle, exactly as shown in the reference. Do not enlarge or exaggerate the logo.`,
@@ -1891,7 +1972,7 @@ function buildPrompt(values) {
       ...(cut !== 'detail' ? [MARGIN_LINE] : []),
       `Retouch and clean up the garment but preserve natural fabric drape and flow. Remove excessive wrinkles while keeping the natural movement of the fabric intact.`,
       `Relight with soft, even studio lighting from the front. Subtle natural shadow to emphasize volume and length.`,
-      buildMatLine(material, color, cleanDetail),
+      buildMatLine(material, color, detailWithLength),
       `Preserve the exact silhouette, design, and full length proportions of the dress.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
       `Preserve the exact neckline shape from the reference image accurately. Do not alter the neckline design.`,
@@ -1917,7 +1998,7 @@ function buildPrompt(values) {
       outerRetouchLine,
       ...(isLeatherVinyl ? [] : [`Relight with soft, even studio lighting from the front. No shadows on the background.`]),
       `IMPORTANT: Preserve the EXACT proportions and aspect ratio of the original garment — do NOT stretch, elongate, or compress the garment vertically or horizontally. The sleeve length, body length, and shoulder width ratio must match the reference image precisely.`,
-      buildMatLine(material, color, cleanDetail),
+      buildMatLine(material, color, detailWithLength),
       ...(hasTextureEmphasis && isSuede ? [`The fabric must read as real suede, not wool: visible short brushed nap, velvety directional pile, irregular suede grain, matte surface, and subtle light/dark variation when the pile changes direction. Avoid any felted, woolly, fuzzy coat, tweed, melton, fleece, or boiled-wool appearance.`] : []),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
@@ -2011,11 +2092,13 @@ function resetAll() {
   document.getElementById('custom-bg').value = '';
   document.getElementById('prompt-output').value = '';
   _activeMajor = '';
-  _activeMinor = '';
-  _activeGloss = '';
+  _activeMinor  = '';
+  _activeGloss  = '';
+  _activeLength = '';
   document.querySelectorAll('#category-main-group .segment-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('category-sub-wrap').classList.remove('visible');
-  document.querySelectorAll('.gloss-chip').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#gloss-group .gloss-chip').forEach(b => b.classList.remove('active'));
+  updateLengthChips('');
   document.querySelectorAll('#cut-group .chip').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('#bg-group .color-chip').forEach(b => b.classList.remove('active'));
   localStorage.removeItem('ppb_state');
