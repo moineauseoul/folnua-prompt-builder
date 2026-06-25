@@ -514,15 +514,16 @@
       display: none;
       position: absolute;
       bottom: calc(100% + 6px);
-      left: 50%;
-      transform: translateX(-50%);
+      right: 0;
+      left: auto;
+      transform: none;
       background: #333;
       color: #fff;
       font-size: 12px;
       line-height: 1.5;
       border-radius: 6px;
       padding: 6px 10px;
-      max-width: 220px;
+      max-width: 200px;
       width: max-content;
       white-space: normal;
       z-index: 100;
@@ -531,8 +532,9 @@
     .tip-box::after {
       content: '';
       position: absolute;
-      top: 100%; left: 50%;
-      transform: translateX(-50%);
+      top: 100%; right: 3px;
+      left: auto;
+      transform: none;
       border: 5px solid transparent;
       border-top-color: #333;
     }
