@@ -321,6 +321,8 @@
     }
     .detail-ref-input:focus { border-color: var(--accent); }
     .detail-ref-input::placeholder { color: var(--gray-400); }
+    .slot-hint { font-size: 11px; color: #999; margin-bottom: 4px; display: none; }
+    .slot-hint.visible { display: block; }
 
     /* Analysis */
     .upload-footer {
@@ -1068,10 +1070,10 @@ async function addDroppedImages(fileList) {
 const UPLOAD_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`;
 
 const DETAIL_PLACEHOLDERS = [
-  '자수 로고 디테일 참고',
-  '금속 로고 장식 참고',
-  '원단 텍스처 / 주름 참고',
-  '봉제 / 마감 디테일 참고',
+  '위치 포함 필수 예: 하단 우측 금속 로고',
+  '위치 포함 필수 예: 하단 우측 금속 로고',
+  '위치 포함 필수 예: 하단 우측 금속 로고',
+  '위치 포함 필수 예: 하단 우측 금속 로고',
 ];
 
 function createUploadSlot(i) {
@@ -1104,13 +1106,24 @@ function createUploadSlot(i) {
 
 /* 슬롯 1 — 메인 */
 const mainSection = document.createElement('div');
+const slotHint = document.createElement('p');
+slotHint.id = 'slot-hint';
+slotHint.className = 'slot-hint';
+slotHint.textContent = '💡 후면컷은 완성된 정면 결과물을 슬롯 1에 넣어야 스타일이 통일됩니다.';
 const mainLbl = document.createElement('p');
 mainLbl.className = 'slot-label';
 mainLbl.textContent = '메인 이미지';
 const mainSlot = createUploadSlot(0);
 mainSlot.classList.add('upload-slot-main');
+const mainRefInput = document.createElement('input');
+mainRefInput.type = 'text';
+mainRefInput.id = 'detail-ref-0';
+mainRefInput.className = 'detail-ref-input';
+mainRefInput.placeholder = '원본 이미지 (만들고 싶은 컷 방향과 동일하게)';
+mainSection.appendChild(slotHint);
 mainSection.appendChild(mainLbl);
 mainSection.appendChild(mainSlot);
+mainSection.appendChild(mainRefInput);
 uploadArea.appendChild(mainSection);
 
 /* 슬롯 2~5 — 디테일 */
@@ -1183,6 +1196,32 @@ function bindSingleChip(groupId) {
   });
 }
 bindSingleChip('cut-group');
+
+function updateSlotPlaceholders(cut) {
+  const hint   = document.getElementById('slot-hint');
+  const ref0   = document.getElementById('detail-ref-0');
+  const defaultDetail = '위치 포함 필수 예: 하단 우측 금속 로고';
+  if (cut === 'back') {
+    hint?.classList.add('visible');
+    if (ref0) ref0.placeholder = '완성된 정면 결과물 이미지를 넣어주세요 (원본 아님)';
+    const ref1 = document.getElementById('detail-ref-1');
+    if (ref1) ref1.placeholder = '후면 원본 사진 (소재/형태 참고용)';
+    [2, 3, 4].forEach(i => {
+      const el = document.getElementById(`detail-ref-${i}`);
+      if (el) el.placeholder = defaultDetail;
+    });
+  } else {
+    hint?.classList.remove('visible');
+    if (ref0) ref0.placeholder = '원본 이미지 (만들고 싶은 컷 방향과 동일하게)';
+    [1, 2, 3, 4].forEach(i => {
+      const el = document.getElementById(`detail-ref-${i}`);
+      if (el) el.placeholder = defaultDetail;
+    });
+  }
+}
+document.getElementById('cut-group').querySelectorAll('.chip').forEach(btn => {
+  btn.addEventListener('click', () => updateSlotPlaceholders(btn.dataset.value));
+});
 
 /* ── 카테고리 대분류/소분류 ── */
 let _activeMajor = '';
@@ -1911,7 +1950,7 @@ function resetAll() {
     const img = document.getElementById(`thumb-img-${i}`);
     if (img) img.src = '';
   }
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 0; i <= 4; i++) {
     const el = document.getElementById(`detail-ref-${i}`);
     if (el) el.value = '';
   }
@@ -1973,6 +2012,7 @@ function saveState() {
       material:   stripGlossTag(document.getElementById('material').value),
       detail:     document.getElementById('detail').value,
       color:      document.getElementById('color-text').value,
+      mainRef:    document.getElementById('detail-ref-0')?.value || '',
       detailRefs: [1,2,3,4].map(i => document.getElementById(`detail-ref-${i}`)?.value || ''),
       prompt:     document.getElementById('prompt-output').value,
     };
@@ -2052,6 +2092,7 @@ async function restoreState() {
       if (s.material)  document.getElementById('material').value   = s.material;
       if (s.detail)    document.getElementById('detail').value     = s.detail;
       if (s.color)     document.getElementById('color-text').value = s.color;
+      if (s.mainRef) { const el = document.getElementById('detail-ref-0'); if (el) el.value = s.mainRef; }
       (s.detailRefs || []).forEach((val, i) => {
         const el = document.getElementById(`detail-ref-${i + 1}`);
         if (el && val) el.value = val;
@@ -2068,7 +2109,7 @@ async function restoreState() {
 }
 
 /* 텍스트 필드 자동 저장 */
-['material', 'detail', 'color-text', 'detail-ref-1', 'detail-ref-2', 'detail-ref-3', 'detail-ref-4']
+['material', 'detail', 'color-text', 'detail-ref-0', 'detail-ref-1', 'detail-ref-2', 'detail-ref-3', 'detail-ref-4']
   .forEach(id => { document.getElementById(id)?.addEventListener('input', debouncedSave); });
 
 document.getElementById('custom-bg').addEventListener('input', debouncedSave);
