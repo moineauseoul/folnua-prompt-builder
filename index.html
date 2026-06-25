@@ -321,8 +321,8 @@
     }
     .detail-ref-input:focus { border-color: var(--accent); }
     .detail-ref-input::placeholder { color: var(--gray-400); }
-    .slot-hint { font-size: 11px; color: #999; margin-bottom: 4px; display: none; }
-    .slot-hint.visible { display: block; }
+    .slot-back-hint { font-size: 12px; color: #999; text-align: center; margin-top: 6px; display: none; }
+    .slot-back-hint.visible { display: block; }
 
     /* Analysis */
     .upload-footer {
@@ -1106,21 +1106,21 @@ function createUploadSlot(i) {
 
 /* 슬롯 1 — 메인 */
 const mainSection = document.createElement('div');
-const slotHint = document.createElement('p');
-slotHint.id = 'slot-hint';
-slotHint.className = 'slot-hint';
-slotHint.textContent = '💡 후면컷은 완성된 정면 결과물을 슬롯 1에 넣어야 스타일이 통일됩니다.';
 const mainLbl = document.createElement('p');
 mainLbl.className = 'slot-label';
 mainLbl.textContent = '메인 이미지';
 const mainSlot = createUploadSlot(0);
 mainSlot.classList.add('upload-slot-main');
+const slotBackHint = document.createElement('span');
+slotBackHint.id = 'slot-back-hint';
+slotBackHint.className = 'slot-back-hint';
+slotBackHint.textContent = '💡 후면컷은 완성된 정면 결과물을 넣어주세요';
+mainSlot.querySelector('label').appendChild(slotBackHint);
 const mainRefInput = document.createElement('input');
 mainRefInput.type = 'text';
 mainRefInput.id = 'detail-ref-0';
 mainRefInput.className = 'detail-ref-input';
 mainRefInput.placeholder = '원본 이미지 (만들고 싶은 컷 방향과 동일하게)';
-mainSection.appendChild(slotHint);
 mainSection.appendChild(mainLbl);
 mainSection.appendChild(mainSlot);
 mainSection.appendChild(mainRefInput);
@@ -1198,7 +1198,7 @@ function bindSingleChip(groupId) {
 bindSingleChip('cut-group');
 
 function updateSlotPlaceholders(cut) {
-  const hint   = document.getElementById('slot-hint');
+  const hint   = document.getElementById('slot-back-hint');
   const ref0   = document.getElementById('detail-ref-0');
   const defaultDetail = '위치 포함 필수 예: 하단 우측 금속 로고';
   if (cut === 'back') {
