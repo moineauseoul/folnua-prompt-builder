@@ -1822,12 +1822,15 @@ function buildPrompt(values) {
     .replace(/\b(body|curves?|curve[ds]?|fitted?|body-hugging|body-contouring|body[-\s]?curve[ds]?)\b/gi, '')
     .replace(/,\s*,/g, ',').replace(/\s+/g, ' ').trim().replace(/^,|,$/g, '').trim();
 
+  const MARGIN_LINE = `Center the garment with equal left and right margins. Top margin: approximately 8% of image height. Bottom margin: approximately 5% of image height. Do not crop any part of the garment.`;
+
   let lines;
 
   if (category === 'top') {
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The garment is displayed suspended in air, showing its natural shape and vertical drape as if hanging.`,
+      MARGIN_LINE,
       isLeatherVinyl
         ? `Retouch and enhance the garment professionally: clean up the overall appearance, remove lint, dust, and minor distracting artifacts. Relight with soft, even studio lighting from the front. No shadows on the background. Preserve natural leather/vinyl wrinkles and surface texture — do NOT flatten or remove natural material creases. The wrinkles are part of the material character and must remain visible.`
         : `Retouch and clean up the garment: remove all wrinkles, creases, and folds. Make the fabric look smooth and neatly pressed while maintaining a natural hanging drape.`,
@@ -1847,6 +1850,7 @@ function buildPrompt(values) {
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The pants are displayed flat, showing their natural silhouette and shape from the front.`,
+      MARGIN_LINE,
       `Remove excessive wrinkles but preserve the natural texture and character of the fabric. Keep center front and back creases crisp and clean.`,
       `Relight with soft, even studio lighting from the front. No shadows on the background.`,
       buildMatLine(material, color, cleanDetail),
@@ -1861,6 +1865,7 @@ function buildPrompt(values) {
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The skirt is displayed suspended in air, showing its natural drape and volume as if hanging.`,
+      MARGIN_LINE,
       `Retouch and clean up the garment but preserve natural fabric drape and flow. Keep pleats, gathers, and volume shapes intact.`,
       `Relight with soft, even studio lighting from the front. Subtle natural shadow to emphasize volume and shape.`,
       buildMatLine(material, color, cleanDetail),
@@ -1875,6 +1880,7 @@ function buildPrompt(values) {
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The dress is displayed suspended in air, showing its full length, natural shape and drape as if hanging.`,
+      MARGIN_LINE,
       `Retouch and clean up the garment but preserve natural fabric drape and flow. Remove excessive wrinkles while keeping the natural movement of the fabric intact.`,
       `Relight with soft, even studio lighting from the front. Subtle natural shadow to emphasize volume and length.`,
       buildMatLine(material, color, cleanDetail),
@@ -1899,6 +1905,7 @@ function buildPrompt(values) {
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The garment is displayed suspended in air, showing its natural shape and structured silhouette as if hanging.`,
+      MARGIN_LINE,
       outerRetouchLine,
       ...(isLeatherVinyl ? [] : [`Relight with soft, even studio lighting from the front. No shadows on the background.`]),
       `IMPORTANT: Preserve the EXACT proportions and aspect ratio of the original garment — do NOT stretch, elongate, or compress the garment vertically or horizontally. The sleeve length, body length, and shoulder width ratio must match the reference image precisely.`,
@@ -1917,6 +1924,7 @@ function buildPrompt(values) {
     lines = [
       `Remove the existing background completely and replace with a solid ${bg} background.`,
       `Keep the product exactly as shown, ${cutView} view, centered composition.`,
+      MARGIN_LINE,
       `Relight with soft, even studio lighting. Subtle shadow beneath the product only.`,
       buildMatLine(material, color, values.detail),
       `Preserve exact product shape, proportions, surface texture, and logo detail accurately.`,
