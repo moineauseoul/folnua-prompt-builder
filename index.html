@@ -1037,10 +1037,32 @@ async function analyzeCurrentImages() {
   await analyzeImageWithClaude(items);
 }
 
+const MAX_PX = 4000;
+
+async function resizeIfNeeded(file) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const src = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(src);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      if (w <= MAX_PX && h <= MAX_PX) { resolve(file); return; }
+      const scale = MAX_PX / Math.max(w, h);
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => resolve(new File([blob], file.name, { type: blob.type })), file.type || 'image/jpeg', 0.92);
+    };
+    img.src = src;
+  });
+}
+
 async function setImageAtSlot(index, file) {
   if (images[index]?.url) URL.revokeObjectURL(images[index].url);
-  const url = URL.createObjectURL(file);
-  images[index] = { file, url };
+  const resized = await resizeIfNeeded(file);
+  const url = URL.createObjectURL(resized);
+  images[index] = { file: resized, url };
   document.getElementById(`thumb-img-${index}`).src = url;
   document.getElementById(`thumb-${index}`).classList.add('has-image');
   updateCount();
