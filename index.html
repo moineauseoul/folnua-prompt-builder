@@ -1169,7 +1169,7 @@ mainSlot.classList.add('upload-slot-main');
 const slotBackHint = document.createElement('span');
 slotBackHint.id = 'slot-back-hint';
 slotBackHint.className = 'slot-back-hint';
-slotBackHint.textContent = '💡 후면컷은 완성된 정면 결과물을 넣어주세요';
+slotBackHint.textContent = '💡 후면컷은 슬롯 1에 후면 원본, 슬롯 2에 완성된 정면 결과물을 넣어주세요.';
 mainSlot.querySelector('label').appendChild(slotBackHint);
 const mainRefInput = document.createElement('input');
 mainRefInput.type = 'text';
@@ -1252,7 +1252,7 @@ function bindSingleChip(groupId) {
 }
 bindSingleChip('cut-group');
 
-const BACK_AUTO_TEXT = '완성된 정면 결과물 — 조명 톤, 제품 크기 비율, 실루엣, 기장감, 색상, 소재 질감 참고';
+const BACK_AUTO_TEXT = '후면 원본 — 소재/질감/색상 기준';
 
 function updateSlotPlaceholders(cut) {
   const hint   = document.getElementById('slot-back-hint');
@@ -1261,11 +1261,11 @@ function updateSlotPlaceholders(cut) {
   if (cut === 'back') {
     hint?.classList.add('visible');
     if (ref0) {
-      ref0.placeholder = '완성된 정면 결과물 이미지를 넣어주세요 (원본 아님)';
+      ref0.placeholder = '후면 원본 이미지 (질감/색상 기준)';
       if (!ref0.value.trim()) ref0.value = BACK_AUTO_TEXT;
     }
     const ref1 = document.getElementById('detail-ref-1');
-    if (ref1) ref1.placeholder = '후면 원본 사진 (소재/형태 참고용)';
+    if (ref1) ref1.placeholder = '완성된 정면 결과물 (조명/비율/실루엣 참고)';
     [2, 3, 4].forEach(i => {
       const el = document.getElementById(`detail-ref-${i}`);
       if (el) el.placeholder = defaultDetail;
