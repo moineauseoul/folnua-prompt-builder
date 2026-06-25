@@ -1759,7 +1759,7 @@ function buildPrompt(values) {
       isLeatherVinyl
         ? `Retouch and enhance the garment professionally: clean up the overall appearance, remove lint, dust, and minor distracting artifacts. Relight with soft even studio lighting. Preserve natural leather/vinyl wrinkles and surface texture — do NOT flatten or remove natural material creases. The wrinkles are part of the material character and must remain visible.`
         : `Retouch and clean up the garment: remove all wrinkles, creases, and folds. Make the fabric look smooth and neatly pressed while maintaining a natural hanging drape.`,
-      `Relight with soft, even studio lighting from the front. No shadows on the background.`,
+      ...(isLeatherVinyl ? [] : [`Relight with soft, even studio lighting from the front. No shadows on the background.`]),
       buildMatLine(material, color, cleanDetail),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
       `Do not change the clothing structure, pattern, or color in any way.`,
@@ -1827,7 +1827,7 @@ function buildPrompt(values) {
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The garment is displayed suspended in air, showing its natural shape and structured silhouette as if hanging.`,
       outerRetouchLine,
-      `Relight with soft, even studio lighting from the front. No shadows on the background.`,
+      ...(isLeatherVinyl ? [] : [`Relight with soft, even studio lighting from the front. No shadows on the background.`]),
       `IMPORTANT: Preserve the EXACT proportions and aspect ratio of the original garment — do NOT stretch, elongate, or compress the garment vertically or horizontally. The sleeve length, body length, and shoulder width ratio must match the reference image precisely.`,
       buildMatLine(material, color, cleanDetail),
       ...(hasTextureEmphasis && isSuede ? [`The fabric must read as real suede, not wool: visible short brushed nap, velvety directional pile, irregular suede grain, matte surface, and subtle light/dark variation when the pile changes direction. Avoid any felted, woolly, fuzzy coat, tweed, melton, fleece, or boiled-wool appearance.`] : []),
