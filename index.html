@@ -495,6 +495,49 @@
       cursor: pointer; flex-shrink: 0;
     }
 
+    /* ── Tooltip icon ── */
+    .tip-wrap { position: relative; display: inline-flex; align-items: center; }
+    .tip-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      border: 1px solid #ccc;
+      color: #bbb;
+      font-size: 10px; font-style: normal; font-weight: 600;
+      cursor: default;
+      flex-shrink: 0;
+      transition: border-color .15s, color .15s;
+      line-height: 1;
+    }
+    .tip-wrap:hover .tip-icon { border-color: #888; color: #888; }
+    .tip-box {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.5;
+      border-radius: 6px;
+      padding: 6px 10px;
+      max-width: 220px;
+      width: max-content;
+      white-space: normal;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .tip-box::after {
+      content: '';
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #333;
+    }
+    .tip-wrap:hover .tip-box { display: block; }
+
     /* ── Buttons ── */
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
@@ -813,26 +856,50 @@
         <label class="check-item">
           <input type="checkbox" class="extra-opt" id="leather-vinyl-opt" data-prompt="" />
           레더 / 비닐 소재 (주름 보존)
-        </label>
-        <label class="check-item">
-          <input type="checkbox" class="extra-opt" data-prompt="Keep embroidered logo details sharp, clean, and readable." />
-          자수 로고 선명하게
-        </label>
-        <label class="check-item">
-          <input type="checkbox" class="extra-opt" data-prompt="Render metal logo hardware accurately with clean edges and realistic highlights." />
-          로고 금속 장식 정확하게
-        </label>
-        <label class="check-item">
-          <input type="checkbox" class="extra-opt" data-prompt="Render fabric texture and material quality accurately. Emphasize the surface texture and tactile quality of the fabric." />
-          텍스처 / 원단감 강조
-        </label>
-        <label class="check-item">
-          <input type="checkbox" class="extra-opt" data-prompt="Emphasize clean, crisp product silhouette." />
-          실루엣 강조
+          <span class="tip-wrap">
+            <i class="tip-icon">i</i>
+            <span class="tip-box">가죽자켓, PU/비닐 소재처럼 주름이 소재감의 일부인 경우 체크. 주름 제거 없이 자연스러운 소재 질감을 유지하고 비율 왜곡을 방지합니다.</span>
+          </span>
         </label>
         <label class="check-item">
           <input type="checkbox" class="extra-opt" data-prompt="Preserve the natural drape and flow of the fabric. Do not over-smooth or flatten the material — maintain its natural soft movement and character." />
           자연스러운 드레이프 유지
+          <span class="tip-wrap">
+            <i class="tip-icon">i</i>
+            <span class="tip-box">린넨, 시폰 등 흘러내리는 소재에 체크. 소재의 자연스러운 처짐을 유지합니다.</span>
+          </span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" class="extra-opt" data-prompt="Render fabric texture and material quality accurately. Emphasize the surface texture and tactile quality of the fabric." />
+          텍스처 / 원단감 강조
+          <span class="tip-wrap">
+            <i class="tip-icon">i</i>
+            <span class="tip-box">소재감이 중요한 제품에 체크. 가죽 그레인, 스웨이드 나프, 패브릭 위브 등 표면 질감을 강조합니다.</span>
+          </span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" class="extra-opt" data-prompt="Emphasize clean, crisp product silhouette." />
+          실루엣 강조
+          <span class="tip-wrap">
+            <i class="tip-icon">i</i>
+            <span class="tip-box">재킷, 코트 등 구조적인 아우터에 체크. 어깨선, 허리선 등 실루엣 라인을 선명하게 표현합니다. 흘러내리는 소재(상의/스커트)에는 체크 X.</span>
+          </span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" class="extra-opt" data-prompt="Keep embroidered logo details sharp, clean, and readable." />
+          자수 로고 선명하게
+          <span class="tip-wrap">
+            <i class="tip-icon">i</i>
+            <span class="tip-box">자수 처리된 브랜드 로고가 있을 때 체크. 자수 스티치가 선명하고 정확하게 표현됩니다.</span>
+          </span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" class="extra-opt" data-prompt="Render metal logo hardware accurately with clean edges and realistic highlights." />
+          로고 금속 장식 정확하게
+          <span class="tip-wrap">
+            <i class="tip-icon">i</i>
+            <span class="tip-box">금속 로고 플레이트, 금속 버튼, 하드웨어 장식이 있을 때 체크. 금속 소재의 광택과 엣지가 정확하게 표현됩니다.</span>
+          </span>
         </label>
       </div>
     </div>
