@@ -1632,6 +1632,16 @@ async function analyzeImageWithClaude(items) {
       imageContent.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } });
     }
 
+    const SLOT_LABELS = ['메인 이미지', '디테일 1', '디테일 2', '디테일 3', '디테일 4'];
+    const slotDescLines = items
+      .map(item => {
+        const desc = document.getElementById(`detail-ref-${item.index}`)?.value.trim();
+        if (!desc) return null;
+        const label = SLOT_LABELS[item.index] || `슬롯 ${item.index + 1}`;
+        return `참고 - ${label} 설명: ${desc}`;
+      })
+      .filter(Boolean);
+
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -1648,6 +1658,7 @@ async function analyzeImageWithClaude(items) {
           role: 'user',
           content: [
             { type: 'text', text: 'Analyze these product images and consolidate the result.' },
+            ...(slotDescLines.length ? [{ type: 'text', text: slotDescLines.join('\n') }] : []),
             ...imageContent,
           ],
         }],
