@@ -325,6 +325,26 @@
     .slot-inner-hint.visible { display: block; }
     .upload-slot:has(.thumb-wrap.has-image) .slot-inner-hint { display: none !important; }
 
+    /* ── 정면 참고 슬롯 (후면 전용) ── */
+    #front-ref-section {
+      display: none;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border: 1.5px dashed #93c5fd;
+      border-radius: var(--radius);
+      background: #eff6ff;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    #front-ref-section.visible { display: flex; }
+    #front-ref-slot-col { width: 130px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
+    .upload-slot-front-ref { position: relative; width: 100%; height: 88px; }
+    .upload-slot-front-ref .slot-inner-hint { font-size: 9px; line-height: 1.5; color: #60a5fa; display: block; margin-top: 3px; }
+    .upload-slot:has(.thumb-wrap.has-image) .slot-inner-hint { display: none !important; }
+    #front-ref-meta-col { flex: 1; display: flex; flex-direction: column; gap: 6px; padding-top: 18px; }
+    .front-ref-slot-label { font-size: 10px; font-weight: 600; color: #2563eb; letter-spacing: 0.03em; }
+    .front-ref-higgsfield-note { font-size: 10px; color: #3b82f6; margin: 0; }
+
     /* Analysis */
     .upload-footer {
       display: flex;
@@ -754,6 +774,28 @@
       <button class="btn btn-outline btn-small" id="reset-all-btn">전체 초기화</button>
     </div>
 
+    <!-- 정면 참고 슬롯 (후면 컷 전용) -->
+    <div id="front-ref-section">
+      <div id="front-ref-slot-col">
+        <p class="slot-label front-ref-slot-label">정면 완성본 참고 <span style="font-weight:400;">(분석 제외)</span></p>
+        <div class="upload-slot upload-slot-front-ref" id="front-ref-slot">
+          <label for="front-ref-file-input">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="slot-inner-hint visible">완성된 정면 결과물 — 조명/비율/실루엣/기장감/색상/소재 참고</div>
+          </label>
+          <input type="file" id="front-ref-file-input" accept="image/*" />
+          <div class="thumb-wrap" id="front-ref-thumb">
+            <img id="front-ref-thumb-img" src="" alt="정면 참고" />
+            <button class="del-btn" id="front-ref-del-btn" title="삭제">✕</button>
+          </div>
+        </div>
+      </div>
+      <div id="front-ref-meta-col">
+        <input type="text" id="front-ref-desc" class="detail-ref-input" placeholder="정면 결과물 설명 (선택입력)" />
+        <p class="front-ref-higgsfield-note">※ 힉스필드 사용 시: 정면 참고 슬롯 이미지를 슬롯 2에 넣으세요</p>
+      </div>
+    </div>
+
     <div class="upload-area" id="upload-area"></div>
 
     <div class="analysis-controls">
@@ -1027,6 +1069,7 @@ const imgCountEl       = document.getElementById('img-count');
 const analyzeBtn       = document.getElementById('analyze-btn');
 const analysisScopeEls = document.querySelectorAll('input[name="analysis-scope"]');
 const images           = new Array(MAX_IMAGES).fill(null);
+let frontRefImage      = null;
 let translationCache   = null;
 
 function updateCount() {
@@ -1194,13 +1237,6 @@ for (let i = 1; i < MAX_IMAGES; i++) {
   lbl.textContent = `디테일 ${i}`;
   const detailSlot = createUploadSlot(i);
   detailSlot.classList.add('upload-slot-detail');
-  if (i === 1) {
-    const slotHint1 = document.createElement('div');
-    slotHint1.id = 'slot-inner-hint-1';
-    slotHint1.className = 'slot-inner-hint';
-    slotHint1.innerHTML = '✅ 슬롯 2<br>완성된 정면 결과물<br>(조명/비율/실루엣/기장감 참고)';
-    detailSlot.querySelector('label').appendChild(slotHint1);
-  }
   thumbCol.appendChild(lbl);
   thumbCol.appendChild(detailSlot);
 
@@ -1224,6 +1260,24 @@ uploadArea.appendChild(detailSection);
   uploadArea.addEventListener(ev, (e) => { e.preventDefault(); uploadArea.classList.remove('drag-over'); });
 });
 uploadArea.addEventListener('drop', async (e) => { await addDroppedImages(e.dataTransfer.files); });
+
+/* ── 정면 참고 슬롯 이벤트 ── */
+document.getElementById('front-ref-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (frontRefImage?.url) URL.revokeObjectURL(frontRefImage.url);
+  const url = URL.createObjectURL(file);
+  frontRefImage = { file, url };
+  document.getElementById('front-ref-thumb-img').src = url;
+  document.getElementById('front-ref-thumb').classList.add('has-image');
+  e.target.value = '';
+});
+document.getElementById('front-ref-del-btn').addEventListener('click', () => {
+  if (frontRefImage?.url) URL.revokeObjectURL(frontRefImage.url);
+  frontRefImage = null;
+  document.getElementById('front-ref-thumb').classList.remove('has-image');
+  document.getElementById('front-ref-thumb-img').src = '';
+});
 
 analyzeBtn.addEventListener('click', async () => {
   if (!_activeMajor) {
@@ -1260,26 +1314,24 @@ bindSingleChip('cut-group');
 const BACK_AUTO_TEXT = '후면 원본 — 소재/질감/색상 기준';
 
 function updateSlotPlaceholders(cut) {
-  const hint0  = document.getElementById('slot-inner-hint-0');
-  const hint1  = document.getElementById('slot-inner-hint-1');
-  const ref0   = document.getElementById('detail-ref-0');
-  const defaultDetail = '위치 포함 필수 예: 하단 우측 금속 로고';
+  const hint0          = document.getElementById('slot-inner-hint-0');
+  const ref0           = document.getElementById('detail-ref-0');
+  const frontRefSec    = document.getElementById('front-ref-section');
+  const defaultDetail  = '위치 포함 필수 예: 하단 우측 금속 로고';
   if (cut === 'back') {
     hint0?.classList.add('visible');
-    hint1?.classList.add('visible');
+    frontRefSec?.classList.add('visible');
     if (ref0) {
       ref0.placeholder = '후면 원본 이미지 (질감/색상 기준)';
       if (!ref0.value.trim()) ref0.value = BACK_AUTO_TEXT;
     }
-    const ref1 = document.getElementById('detail-ref-1');
-    if (ref1) ref1.placeholder = '완성된 정면 결과물 (조명/비율/실루엣 참고)';
-    [2, 3, 4].forEach(i => {
+    [1, 2, 3, 4].forEach(i => {
       const el = document.getElementById(`detail-ref-${i}`);
       if (el) el.placeholder = defaultDetail;
     });
   } else {
     hint0?.classList.remove('visible');
-    hint1?.classList.remove('visible');
+    frontRefSec?.classList.remove('visible');
     if (ref0) {
       ref0.placeholder = '원본 이미지 (만들고 싶은 컷 방향과 동일하게)';
       if (ref0.value === BACK_AUTO_TEXT) ref0.value = '';
@@ -1917,10 +1969,11 @@ function buildMatLine(mat, color, detail) {
 }
 
 function buildPrompt(values) {
-  const category = getActiveCategory() || 'top';
-  const cut      = getActiveChip('cut-group')      || 'front';
-  const bg       = getBackgroundValue();
-  const cutView  = CUT_VIEW[cut] || cut;
+  const category     = getActiveCategory() || 'top';
+  const cut          = getActiveChip('cut-group') || 'front';
+  const bg           = getBackgroundValue();
+  const cutView      = CUT_VIEW[cut] || cut;
+  const frontRefDesc = cut === 'back' ? (document.getElementById('front-ref-desc')?.value.trim() || '') : '';
   const { material, color } = values;
 
   const extras = [...document.querySelectorAll('.extra-opt:checked')]
@@ -2048,6 +2101,8 @@ function buildPrompt(values) {
     ];
   }
 
+  if (frontRefDesc) lines.push(`Front view reference (completed result): ${frontRefDesc}`);
+
   return lines.join('\n');
 }
 
@@ -2110,6 +2165,13 @@ function resetAll() {
     const el = document.getElementById(`detail-ref-${i}`);
     if (el) el.value = '';
   }
+  const frDesc = document.getElementById('front-ref-desc');
+  if (frDesc) frDesc.value = '';
+  if (frontRefImage?.url) URL.revokeObjectURL(frontRefImage.url);
+  frontRefImage = null;
+  document.getElementById('front-ref-thumb')?.classList.remove('has-image');
+  const frImg = document.getElementById('front-ref-thumb-img');
+  if (frImg) frImg.src = '';
   ['material', 'detail', 'color-text'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -2168,12 +2230,13 @@ function debouncedSave() {
 function saveState() {
   try {
     const state = {
-      material:   stripGlossTag(document.getElementById('material').value),
-      detail:     document.getElementById('detail').value,
-      color:      document.getElementById('color-text').value,
-      mainRef:    document.getElementById('detail-ref-0')?.value || '',
-      detailRefs: [1,2,3,4].map(i => document.getElementById(`detail-ref-${i}`)?.value || ''),
-      prompt:     document.getElementById('prompt-output').value,
+      material:     stripGlossTag(document.getElementById('material').value),
+      detail:       document.getElementById('detail').value,
+      color:        document.getElementById('color-text').value,
+      mainRef:      document.getElementById('detail-ref-0')?.value || '',
+      detailRefs:   [1,2,3,4].map(i => document.getElementById(`detail-ref-${i}`)?.value || ''),
+      frontRefDesc: document.getElementById('front-ref-desc')?.value || '',
+      prompt:       document.getElementById('prompt-output').value,
     };
     localStorage.setItem(LS_STATE, JSON.stringify(state));
   } catch (_) {}
@@ -2256,6 +2319,7 @@ async function restoreState() {
         const el = document.getElementById(`detail-ref-${i + 1}`);
         if (el && val) el.value = val;
       });
+      if (s.frontRefDesc) { const el = document.getElementById('front-ref-desc'); if (el) el.value = s.frontRefDesc; }
       if (s.prompt) {
         document.getElementById('prompt-output').value = s.prompt;
         setCopyEnabled(true);
@@ -2268,7 +2332,7 @@ async function restoreState() {
 }
 
 /* 텍스트 필드 자동 저장 */
-['material', 'detail', 'color-text', 'detail-ref-0', 'detail-ref-1', 'detail-ref-2', 'detail-ref-3', 'detail-ref-4']
+['material', 'detail', 'color-text', 'detail-ref-0', 'detail-ref-1', 'detail-ref-2', 'detail-ref-3', 'detail-ref-4', 'front-ref-desc']
   .forEach(id => { document.getElementById(id)?.addEventListener('input', debouncedSave); });
 
 document.getElementById('custom-bg').addEventListener('input', debouncedSave);
