@@ -2440,7 +2440,18 @@ function buildPrompt(values) {
 
   let lines;
 
-  if (category === 'top') {
+  if (cut === 'detail') {
+    lines = [
+      `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
+      `Detail close-up shot for e-commerce. Off-center natural composition — leave breathing room on one or two sides as shown in the reference image. Do NOT center the detail symmetrically. No hanger, no mannequin, no model, no hands, no props.`,
+      `Retouch lightly — remove lint and dust only. Preserve natural fabric texture and detail character.`,
+      `Relight with soft, even studio lighting. Natural subtle shadow to emphasize texture and depth.`,
+      buildMatLine(material, color, cleanDetail),
+      `Render all details sharply and accurately. Professional e-commerce close-up shot. No stylization, no artistic effects, no color distortion.`,
+      ...extras,
+    ];
+
+  } else if (category === 'top') {
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The garment is displayed suspended in air, showing its natural shape and structured silhouette.`,
