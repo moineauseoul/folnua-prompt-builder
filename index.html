@@ -118,17 +118,96 @@
 
     /* ── Main content — 2컬럼 그리드, 전체 높이 ── */
     .main-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
+      display: flex;
+      flex-direction: column;
       max-width: 100%;
       height: calc(100vh - 52px - 120px);
       overflow: hidden;
-      padding: 24px 48px;
       background: #ffffff;
       border-radius: 16px;
       margin: 60px 180px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    /* ── 진행도 네비게이션 바 ── */
+    #progress-nav {
+      padding: 11px 32px 9px;
+      border-bottom: 1px solid var(--gray-200);
+      flex-shrink: 0;
+      background: #fff;
+      border-radius: 16px 16px 0 0;
+    }
+    .progress-steps {
+      display: flex;
+      align-items: flex-start;
+    }
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .pstep-circle {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gray-200);
+      background: var(--gray-50);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: var(--gray-300);
+      transition: background .2s, border-color .2s, color .2s;
+      flex-shrink: 0;
+    }
+    .pstep-label {
+      font-size: 11px;
+      color: var(--gray-300);
+      white-space: nowrap;
+      font-weight: 400;
+      transition: color .2s;
+    }
+    .pstep-opt {
+      font-size: 9px;
+      color: var(--gray-300);
+      white-space: nowrap;
+      line-height: 1;
+    }
+    .pstep-line {
+      flex: 1;
+      height: 1.5px;
+      background: var(--gray-200);
+      margin-top: 11px;
+      min-width: 10px;
+      transition: background .2s;
+    }
+    /* done */
+    .pstep-done .pstep-circle  { background: var(--gray-900); border-color: var(--gray-900); color: #fff; }
+    .pstep-done .pstep-label   { color: var(--gray-900); font-weight: 600; }
+    .pstep-done .pstep-opt     { color: var(--gray-500); }
+    .pstep-done + .pstep-line  { background: var(--gray-700); }
+    /* active */
+    .pstep-active .pstep-circle { background: #fff; border-color: var(--gray-900); color: var(--gray-900); box-shadow: 0 0 0 3px rgba(17,24,39,.08); }
+    .pstep-active .pstep-label  { color: var(--gray-900); font-weight: 500; }
+    /* optional (skippable, not done) */
+    .pstep-optional .pstep-circle { border-style: dashed; border-color: var(--gray-300); color: var(--gray-400); background: #fff; }
+    .pstep-optional .pstep-label  { color: var(--gray-500); }
+    .pstep-optional .pstep-opt    { color: var(--gray-400); }
+    /* pending */
+    .pstep-pending .pstep-circle { border-color: var(--gray-200); background: var(--gray-50); color: var(--gray-200); }
+    .pstep-pending .pstep-label  { color: var(--gray-300); }
+    @media (max-width: 800px) {
+      .pstep-label, .pstep-opt { display: none; }
+      #progress-nav { padding: 8px 20px 6px; }
+    }
+
+    .main-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      padding: 24px 48px;
     }
 
     /* ── 좌우 컬럼 ── */
@@ -1028,6 +1107,46 @@
 <!-- ── Main Content ── -->
 <div class="main-content">
 
+  <!-- 진행도 네비게이션 바 -->
+  <nav id="progress-nav">
+    <div class="progress-steps">
+      <div class="progress-step" id="pstep-1">
+        <div class="pstep-circle">1</div>
+        <span class="pstep-label">카테고리</span>
+      </div>
+      <div class="pstep-line"></div>
+      <div class="progress-step" id="pstep-2">
+        <div class="pstep-circle">2</div>
+        <span class="pstep-label">이미지 업로드</span>
+      </div>
+      <div class="pstep-line"></div>
+      <div class="progress-step" id="pstep-3">
+        <div class="pstep-circle">3</div>
+        <span class="pstep-label" id="pstep-3-label">광택/기장</span>
+        <span class="pstep-opt">선택사항</span>
+      </div>
+      <div class="pstep-line"></div>
+      <div class="progress-step" id="pstep-4">
+        <div class="pstep-circle">4</div>
+        <span class="pstep-label">이미지 분석</span>
+      </div>
+      <div class="pstep-line"></div>
+      <div class="progress-step" id="pstep-5">
+        <div class="pstep-circle">5</div>
+        <span class="pstep-label">추가 옵션</span>
+        <span class="pstep-opt">선택사항</span>
+      </div>
+      <div class="pstep-line"></div>
+      <div class="progress-step" id="pstep-6">
+        <div class="pstep-circle">6</div>
+        <span class="pstep-label">프롬프트 생성</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 좌우 컬럼 래퍼 -->
+  <div class="main-cols">
+
   <!-- ── 왼쪽 컬럼 ── -->
   <div class="col-left">
 
@@ -1278,6 +1397,8 @@
   </section>
 
   </div><!-- /col-right -->
+
+  </div><!-- /main-cols -->
 
 </div><!-- /main-content -->
 
@@ -1532,6 +1653,7 @@ const fieldLocks       = { material: false, color: false };
 function updateCount() {
   imgCountEl.textContent = images.filter(Boolean).length;
   updateAnalyzeControls();
+  updateProgressBar();
 }
 
 function updateAnalyzeControls(isAnalyzing = false) {
@@ -1836,6 +1958,7 @@ function updateSlotPlaceholders(cut) {
     });
   }
   saveState();
+  updateProgressBar();
 }
 document.getElementById('cut-group').querySelectorAll('.chip').forEach(btn => {
   btn.addEventListener('click', () => updateSlotPlaceholders(btn.dataset.value));
@@ -1848,6 +1971,7 @@ document.getElementById('detail-part-group').querySelectorAll('.chip').forEach(b
     document.querySelectorAll('#detail-part-group .chip').forEach(b => b.classList.remove('active'));
     if (!isActive) btn.classList.add('active');
     saveState();
+    updateProgressBar();
   });
 });
 
@@ -1857,6 +1981,51 @@ let _activeMinor = '';
 let _activeGloss  = ''; // 광택 퀵셀렉터: matte / semi-glossy / glossy
 let _activeLength   = ''; // 기장 퀵셀렉터
 let _detectedLength = ''; // 후면컷 슬롯2 분석 기장
+let _analysisComplete = false;
+let _promptGenerated  = false;
+
+function updateProgressBar() {
+  const cut      = getActiveChip('cut-group');
+  const isDetail = cut === 'detail';
+
+  const lbl3 = document.getElementById('pstep-3-label');
+  if (lbl3) lbl3.textContent = isDetail ? '부위 선택' : '광택/기장';
+
+  const step3Done = isDetail
+    ? !!getActiveChip('detail-part-group')
+    : !!(_activeGloss || _activeLength);
+
+  const checks = [
+    { done: !!(_activeMajor && (_activeMajor === 'accessory' || _activeMinor)), optional: false },
+    { done: !!images[0],                                                          optional: false },
+    { done: step3Done,                                                            optional: true  },
+    { done: _analysisComplete,                                                    optional: false },
+    { done: document.querySelectorAll('.extra-opt:checked').length > 0,           optional: true  },
+    { done: _promptGenerated,                                                     optional: false },
+  ];
+
+  let foundActive = false;
+  checks.forEach(({ done, optional }, i) => {
+    const el = document.getElementById(`pstep-${i + 1}`);
+    if (!el) return;
+    el.className = 'progress-step';
+    if (done) {
+      el.classList.add('pstep-done');
+    } else if (optional) {
+      el.classList.add('pstep-optional');
+    } else if (!foundActive) {
+      el.classList.add('pstep-active');
+      foundActive = true;
+    } else {
+      el.classList.add('pstep-pending');
+    }
+  });
+
+  /* 연결선: 왼쪽 단계가 완료면 진하게 */
+  document.querySelectorAll('.pstep-line').forEach((line, i) => {
+    line.style.background = checks[i]?.done ? 'var(--gray-700)' : 'var(--gray-200)';
+  });
+}
 
 function stripGlossTag(str) {
   return str.replace(GLOSS_TAG_RE, '');
@@ -1889,6 +2058,7 @@ function renderSubGroup(major) {
       _activeMinor = value;
       updateLengthChips(value);
       saveState();
+      updateProgressBar();
     });
     subGroup.appendChild(btn);
   });
@@ -1916,6 +2086,7 @@ function updateLengthChips(minor) {
       group.querySelectorAll('.gloss-chip').forEach(b => b.classList.toggle('active', b.dataset.value === _activeLength));
       updateLengthTag();
       saveState();
+      updateProgressBar();
     });
     group.appendChild(btn);
   });
@@ -1956,6 +2127,7 @@ document.querySelectorAll('#gloss-group .gloss-chip').forEach(btn => {
       }
     }
     saveState();
+    updateProgressBar();
   });
 });
 
@@ -1972,6 +2144,7 @@ document.getElementById('category-main-group').querySelectorAll('.segment-btn').
     if (lvOpt) lvOpt.checked = false;
     renderSubGroup(_activeMajor);
     saveState();
+    updateProgressBar();
   });
 });
 
@@ -2354,6 +2527,8 @@ async function analyzeImageWithClaude(items) {
 
     showBanner('success', '분석 완료! 필드가 자동으로 채워졌습니다.');
     setTimeout(hideBanner, 2500);
+    _analysisComplete = true;
+    updateProgressBar();
 
   } catch (err) {
     console.error('[Claude 분석 오류]', err);
@@ -2651,6 +2826,8 @@ document.getElementById('generate-btn').addEventListener('click', async () => {
     document.getElementById('prompt-output').value = buildPrompt(translated);
     setCopyEnabled(true);
     setPromptStatus('영문 프롬프트가 생성되었습니다.', 'success');
+    _promptGenerated = true;
+    updateProgressBar();
     saveState();
     saveHistory();
   } catch (err) {
@@ -2726,6 +2903,9 @@ function resetAll() {
   setCopyEnabled(false);
   setPromptStatus('소재, 디테일, 컬러를 입력한 뒤 프롬프트를 생성하세요.');
   hideBanner();
+  _analysisComplete = false;
+  _promptGenerated  = false;
+  updateProgressBar();
 }
 document.getElementById('reset-all-btn').addEventListener('click', resetAll);
 
@@ -2875,7 +3055,7 @@ async function restoreState() {
   .forEach(id => { document.getElementById(id)?.addEventListener('input', debouncedSave); });
 
 document.getElementById('custom-bg').addEventListener('input', debouncedSave);
-document.querySelectorAll('.extra-opt').forEach(cb => cb.addEventListener('change', saveState));
+document.querySelectorAll('.extra-opt').forEach(cb => cb.addEventListener('change', () => { saveState(); updateProgressBar(); }));
 
 /* ═══════════════════════════════════════════════
    15. 히스토리
@@ -3065,7 +3245,7 @@ document.getElementById('guide-btn').addEventListener('click', openGuidePanel);
 document.getElementById('guide-overlay').addEventListener('click', closeGuidePanel);
 document.getElementById('guide-panel-close').addEventListener('click', closeGuidePanel);
 
-restoreState();
+restoreState().then(() => updateProgressBar());
 </script>
 </body>
 </html>
