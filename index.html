@@ -1174,6 +1174,20 @@
       </div>
     </div>
 
+    <!-- 클로즈업 부위 퀵셀렉터 -->
+    <div id="detail-part-row" style="display:none; margin-top:10px;">
+      <p class="section-title">클로즈업 부위 <span style="font-weight:400; color:var(--gray-400);">(선택)</span></p>
+      <div class="chip-group" id="detail-part-group">
+        <button class="chip" data-value="neckline">넥라인</button>
+        <button class="chip" data-value="top-waist">상의 허리</button>
+        <button class="chip" data-value="bottom-waist">하의 허리</button>
+        <button class="chip" data-value="sleeve">소매</button>
+        <button class="chip" data-value="pocket-top">포켓(상의)</button>
+        <button class="chip" data-value="pocket-bottom">포켓(하의)</button>
+        <button class="chip" data-value="fabric">원단</button>
+      </div>
+    </div>
+
     <div style="margin-top:12px;">
       <p class="section-title">추가 옵션</p>
       <div class="check-group">
@@ -1764,6 +1778,12 @@ function updateSlotPlaceholders(cut) {
   const ref0           = document.getElementById('detail-ref-0');
   const frontRefSec    = document.getElementById('front-ref-section');
   const defaultDetail  = '위치 포함 필수 예: 하단 우측 금속 로고';
+
+  /* 클로즈업 부위 퀵셀렉터 표시/초기화 */
+  const detailPartRow = document.getElementById('detail-part-row');
+  if (detailPartRow) detailPartRow.style.display = cut === 'detail' ? '' : 'none';
+  document.querySelectorAll('#detail-part-group .chip').forEach(b => b.classList.remove('active'));
+
   if (cut === 'back') {
     hint0?.classList.add('visible');
     frontRefSec?.classList.add('visible');
@@ -1791,6 +1811,16 @@ function updateSlotPlaceholders(cut) {
 }
 document.getElementById('cut-group').querySelectorAll('.chip').forEach(btn => {
   btn.addEventListener('click', () => updateSlotPlaceholders(btn.dataset.value));
+});
+
+/* 클로즈업 부위 퀵셀렉터 — 토글 바인딩 (재클릭 시 해제) */
+document.getElementById('detail-part-group').querySelectorAll('.chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const isActive = btn.classList.contains('active');
+    document.querySelectorAll('#detail-part-group .chip').forEach(b => b.classList.remove('active'));
+    if (!isActive) btn.classList.add('active');
+    saveState();
+  });
 });
 
 /* ── 카테고리 대분류/소분류 ── */
@@ -2441,10 +2471,23 @@ function buildPrompt(values) {
   let lines;
 
   if (cut === 'detail') {
+    const detailPart = getActiveChip('detail-part-group');
+    const DETAIL_COMPOSITIONS = {
+      'neckline':      `Detail close-up shot. Frame tightly on the neckline area, showing collar structure and upper chest. Off-center natural composition with breathing room on one or two sides.`,
+      'top-waist':     `Detail close-up shot. Frame on the waist detail area of the top. Off-center natural composition with breathing room on one or two sides.`,
+      'bottom-waist':  `Detail close-up shot. Frame on the waistband area of the bottoms, showing waistband structure and any closure details. Off-center natural composition with breathing room on one or two sides.`,
+      'sleeve':        `Detail close-up shot. Frame on the sleeve at a natural diagonal angle, showing cuff detail and sleeve texture. Off-center composition — sleeve entering frame from upper corner.`,
+      'pocket-top':    `Detail close-up shot. Frame on the chest or side pocket detail. Off-center natural composition with breathing room on one or two sides.`,
+      'pocket-bottom': `Detail close-up shot. Frame on the pocket detail of the bottoms. Off-center natural composition with breathing room on one or two sides.`,
+      'fabric':        `Extreme fabric close-up shot. Fill the entire frame with fabric surface texture. No background visible — fabric fills edge to edge. Show the tactile quality, weave structure, and material depth.`,
+    };
+    const compositionLine = detailPart
+      ? DETAIL_COMPOSITIONS[detailPart]
+      : `Detail close-up shot for e-commerce. Off-center natural composition — leave breathing room on one or two sides. Do NOT center the detail symmetrically.`;
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
-      `Detail close-up shot for e-commerce. Off-center natural composition — leave breathing room on one or two sides as shown in the reference image. Do NOT center the detail symmetrically. No hanger, no mannequin, no model, no hands, no props.`,
-      `Retouch lightly — remove lint and dust only. Preserve natural fabric texture and detail character.`,
+      compositionLine,
+      `Retouch lightly — remove lint and dust only. Preserve natural fabric texture and authentic detail character.`,
       `Relight with soft, even studio lighting. Natural subtle shadow to emphasize texture and depth.`,
       buildMatLine(material, color, cleanDetail),
       `Render all details sharply and accurately. Professional e-commerce close-up shot. No stylization, no artistic effects, no color distortion.`,
