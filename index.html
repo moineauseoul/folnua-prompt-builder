@@ -339,6 +339,7 @@
     #front-ref-section.visible { display: flex; }
     #front-ref-slot-col { width: 130px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
     .upload-slot-front-ref { position: relative; width: 100%; height: 88px; }
+    #front-ref-slot.drag-over > label { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
     .upload-slot-front-ref .slot-inner-hint { font-size: 9px; line-height: 1.5; color: #60a5fa; display: block; margin-top: 3px; }
     .upload-slot:has(.thumb-wrap.has-image) .slot-inner-hint { display: none !important; }
     #front-ref-meta-col { flex: 1; display: flex; flex-direction: column; gap: 6px; padding-top: 18px; }
@@ -1437,6 +1438,23 @@ document.getElementById('front-ref-del-btn').addEventListener('click', () => {
   frontRefImage = null;
   document.getElementById('front-ref-thumb').classList.remove('has-image');
   document.getElementById('front-ref-thumb-img').src = '';
+});
+
+const frontRefSlot = document.getElementById('front-ref-slot');
+['dragenter', 'dragover'].forEach(ev => {
+  frontRefSlot.addEventListener(ev, (e) => { e.preventDefault(); frontRefSlot.classList.add('drag-over'); });
+});
+['dragleave', 'drop'].forEach(ev => {
+  frontRefSlot.addEventListener(ev, (e) => { e.preventDefault(); frontRefSlot.classList.remove('drag-over'); });
+});
+frontRefSlot.addEventListener('drop', (e) => {
+  const file = [...e.dataTransfer.files].find(f => f.type.startsWith('image/'));
+  if (!file) return;
+  if (frontRefImage?.url) URL.revokeObjectURL(frontRefImage.url);
+  const url = URL.createObjectURL(file);
+  frontRefImage = { file, url };
+  document.getElementById('front-ref-thumb-img').src = url;
+  document.getElementById('front-ref-thumb').classList.add('has-image');
 });
 
 analyzeBtn.addEventListener('click', async () => {
