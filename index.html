@@ -440,6 +440,27 @@
       cursor: not-allowed;
     }
 
+    /* ── 잠금 버튼 ── */
+    .field-lock-row { display: flex; align-items: center; gap: 6px; }
+    .field-lock-row > input[type="text"] { flex: 1; width: auto; min-width: 0; }
+    .lock-btn {
+      flex-shrink: 0;
+      width: 30px; height: 30px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gray-300);
+      transition: border-color .15s, background .15s, color .15s;
+      padding: 0;
+    }
+    .lock-btn:hover { border-color: var(--gray-400); color: var(--gray-500); }
+    .lock-btn.locked { border-color: #f59e0b; background: #fffbeb; color: #d97706; }
+    .field-locked { background: #fffbe6 !important; border-color: #f59e0b !important; }
+    .field-locked:focus { border-color: #d97706 !important; }
+
     /* ── Hex input ── */
     .hex-input {
       width: 100px;
@@ -847,13 +868,19 @@
       <div>
         <p class="section-title">소재 (한글)</p>
         <div class="field">
-          <input type="text" id="material" placeholder="예: 100% 린넨, 울 혼방, 가죽..." />
+          <div class="field-lock-row">
+            <input type="text" id="material" placeholder="예: 100% 린넨, 울 혼방, 가죽..." />
+            <button class="lock-btn" id="lock-material" title="분석 시 이 필드를 덮어쓰지 않음">🔒</button>
+          </div>
         </div>
       </div>
       <div>
         <p class="section-title">컬러 (한글)</p>
         <div class="field">
-          <input type="text" id="color-text" placeholder="예: 오프화이트, 버건디, 네이비..." />
+          <div class="field-lock-row">
+            <input type="text" id="color-text" placeholder="예: 오프화이트, 버건디, 네이비..." />
+            <button class="lock-btn" id="lock-color" title="분석 시 이 필드를 덮어쓰지 않음">🔒</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1071,6 +1098,7 @@ const analysisScopeEls = document.querySelectorAll('input[name="analysis-scope"]
 const images           = new Array(MAX_IMAGES).fill(null);
 let frontRefImage      = null;
 let translationCache   = null;
+const fieldLocks       = { material: false, color: false };
 
 function updateCount() {
   imgCountEl.textContent = images.filter(Boolean).length;
@@ -1260,6 +1288,20 @@ uploadArea.appendChild(detailSection);
   uploadArea.addEventListener(ev, (e) => { e.preventDefault(); uploadArea.classList.remove('drag-over'); });
 });
 uploadArea.addEventListener('drop', async (e) => { await addDroppedImages(e.dataTransfer.files); });
+
+/* ── 잠금 버튼 ── */
+function applyLockUI(field, locked) {
+  const inputId = field === 'color' ? 'color-text' : field;
+  document.getElementById(`lock-${field}`)?.classList.toggle('locked', locked);
+  document.getElementById(inputId)?.classList.toggle('field-locked', locked);
+}
+function toggleLock(field) {
+  fieldLocks[field] = !fieldLocks[field];
+  applyLockUI(field, fieldLocks[field]);
+  saveState();
+}
+document.getElementById('lock-material').addEventListener('click', () => toggleLock('material'));
+document.getElementById('lock-color').addEventListener('click',    () => toggleLock('color'));
 
 /* ── 정면 참고 슬롯 이벤트 ── */
 document.getElementById('front-ref-file-input').addEventListener('change', async (e) => {
@@ -1843,9 +1885,9 @@ async function analyzeImageWithClaude(items) {
       _detectedLength = DMAP[raw] || (LENGTH_PROMPTS[raw] ? raw : '');
     }
 
-    document.getElementById('material').value   = result.material || '';
-    document.getElementById('detail').value     = result.details  || '';
-    document.getElementById('color-text').value = result.color    || '';
+    if (!fieldLocks.material) document.getElementById('material').value   = result.material || '';
+    document.getElementById('detail').value = result.details || '';
+    if (!fieldLocks.color)    document.getElementById('color-text').value = result.color    || '';
     translationCache = null;
 
     showBanner('success', '분석 완료! 필드가 자동으로 채워졌습니다.');
@@ -2178,6 +2220,8 @@ function resetAll() {
   });
   document.getElementById('custom-bg').value = '';
   document.getElementById('prompt-output').value = '';
+  fieldLocks.material = false; applyLockUI('material', false);
+  fieldLocks.color    = false; applyLockUI('color',    false);
   _activeMajor    = '';
   _activeMinor    = '';
   _activeGloss    = '';
@@ -2236,6 +2280,7 @@ function saveState() {
       mainRef:      document.getElementById('detail-ref-0')?.value || '',
       detailRefs:   [1,2,3,4].map(i => document.getElementById(`detail-ref-${i}`)?.value || ''),
       frontRefDesc: document.getElementById('front-ref-desc')?.value || '',
+      locks:        { material: fieldLocks.material, color: fieldLocks.color },
       prompt:       document.getElementById('prompt-output').value,
     };
     localStorage.setItem(LS_STATE, JSON.stringify(state));
@@ -2320,6 +2365,14 @@ async function restoreState() {
         if (el && val) el.value = val;
       });
       if (s.frontRefDesc) { const el = document.getElementById('front-ref-desc'); if (el) el.value = s.frontRefDesc; }
+      if (s.locks) {
+        Object.keys(s.locks).forEach(k => {
+          if (Object.prototype.hasOwnProperty.call(fieldLocks, k)) {
+            fieldLocks[k] = !!s.locks[k];
+            applyLockUI(k, fieldLocks[k]);
+          }
+        });
+      }
       if (s.prompt) {
         document.getElementById('prompt-output').value = s.prompt;
         setCopyEnabled(true);
