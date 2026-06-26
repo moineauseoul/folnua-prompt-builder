@@ -1169,7 +1169,13 @@
           <button class="chip" data-value="front">정면</button>
           <button class="chip" data-value="back">후면</button>
           <button class="chip" data-value="three-quarter">반측면</button>
-          <button class="chip" data-value="detail">클로즈업</button>
+          <span style="display:inline-flex; align-items:center; gap:4px;">
+            <button class="chip" data-value="detail">클로즈업</button>
+            <span class="tip-wrap">
+              <i class="tip-icon">i</i>
+              <span class="tip-box" style="max-width:260px;">필요한 디테일 부위만 부분 제작할 때 사용. 정면/후면컷을 크롭해서 쓸 수 있으면 클로즈업 생략 가능. ※ 컷마다 슬롯 1 이미지 교체 후 이미지 분석을 다시 실행해야 합니다. 단, 원단컷은 이미지 분석 없이 프롬프트 생성 가능.</span>
+            </span>
+          </span>
         </div>
       </div>
     </div>
@@ -1415,6 +1421,28 @@
         <li class="dot">후면에 없는 정면 디테일은 최종 디테일란에서 직접 삭제</li>
         <li class="dot">소재/컬러는 정면 분석 기준으로 🔒 잠금 후 작업</li>
         <li class="dot">히스토리 기능으로 정면 분석 내용 불러오기 가능</li>
+      </ul>
+    </div>
+
+    <div class="guide-section">
+      <h2>클로즈업컷 제작 시 주의사항</h2>
+      <ul>
+        <li>정면/후면컷을 크롭해서 쓸 수 있으면 클로즈업 생략 가능</li>
+        <li>클로즈업이 필요한 경우에만 별도 제작</li>
+      </ul>
+      <h3>작업 순서</h3>
+      <table class="guide-table">
+        <colgroup><col style="width:36px"><col></colgroup>
+        <tr><td>1)</td><td>카테고리 선택 → 컷 종류: 클로즈업 → 부위 선택</td></tr>
+        <tr><td>2)</td><td>슬롯 1에 해당 부위 원본 이미지 업로드</td></tr>
+        <tr><td>3)</td><td>이미지 분석 실행</td></tr>
+        <tr><td>4)</td><td>프롬프트 생성</td></tr>
+      </table>
+      <h3>같은 제품 여러 클로즈업컷 제작 시</h3>
+      <ul>
+        <li class="dot">컷마다 슬롯 1 이미지 교체 후 이미지 분석 다시 실행</li>
+        <li class="dot">부위 퀵셀렉터 변경 후 프롬프트 재생성</li>
+        <li class="note">예외: 원단컷은 이미지 분석 없이 프롬프트 생성 가능</li>
       </ul>
     </div>
 
