@@ -131,25 +131,29 @@
 
     /* ── 진행도 네비게이션 바 ── */
     #progress-nav {
-      padding: 11px 32px 9px;
-      border-bottom: 1px solid var(--gray-200);
+      padding: 16px 48px;
+      min-height: 64px;
+      border-bottom: 1px solid #eee;
       flex-shrink: 0;
       background: #fff;
       border-radius: 16px 16px 0 0;
+      display: flex;
+      align-items: center;
     }
     .progress-steps {
       display: flex;
       align-items: flex-start;
+      width: 100%;
     }
     .progress-step {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       flex-shrink: 0;
     }
     .pstep-circle {
-      width: 24px; height: 24px;
+      width: 28px; height: 28px;
       border-radius: 50%;
       border: 1.5px solid var(--gray-200);
       background: var(--gray-50);
@@ -164,6 +168,7 @@
       color: var(--gray-300);
       white-space: nowrap;
       font-weight: 400;
+      text-align: center;
       transition: color .2s;
     }
     .pstep-opt {
@@ -171,12 +176,13 @@
       color: var(--gray-300);
       white-space: nowrap;
       line-height: 1;
+      text-align: center;
     }
     .pstep-line {
       flex: 1;
       height: 1.5px;
       background: var(--gray-200);
-      margin-top: 11px;
+      margin-top: 13px;
       min-width: 10px;
       transition: background .2s;
     }
@@ -197,7 +203,8 @@
     .pstep-pending .pstep-label  { color: var(--gray-300); }
     @media (max-width: 800px) {
       .pstep-label, .pstep-opt { display: none; }
-      #progress-nav { padding: 8px 20px 6px; }
+      #progress-nav { padding: 12px 20px; min-height: 52px; }
+      .pstep-line { margin-top: 13px; }
     }
 
     .main-cols {
