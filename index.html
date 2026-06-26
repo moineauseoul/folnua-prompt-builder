@@ -513,6 +513,111 @@
     .quick-select-col { display: flex; align-items: center; gap: 6px; }
     .quick-select-col .section-title { margin-bottom: 0; white-space: nowrap; }
 
+    /* ── 히스토리 버튼 & 사이드 패널 ── */
+    .history-btn {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 11px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      background: #fff;
+      font-size: 12px; font-weight: 500;
+      color: var(--gray-700);
+      cursor: pointer; white-space: nowrap;
+      transition: border-color .15s, background .15s;
+      font-family: inherit;
+    }
+    .history-btn:hover { border-color: var(--gray-400); background: var(--gray-50); }
+    .api-dropdown-wrap { margin-left: 0 !important; }
+
+    #history-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.25); z-index: 500;
+    }
+    #history-overlay.open { display: block; }
+
+    #history-panel {
+      position: fixed; top: 0; right: 0;
+      width: 320px; height: 100vh;
+      background: #fff;
+      border-left: 1px solid var(--gray-200);
+      box-shadow: -6px 0 24px rgba(0,0,0,.09);
+      z-index: 501;
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+    }
+    #history-panel.open { transform: translateX(0); }
+
+    .history-panel-header {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .history-panel-title { font-size: 14px; font-weight: 600; }
+    .history-panel-close {
+      width: 28px; height: 28px; padding: 0;
+      border: none; background: none; cursor: pointer;
+      font-size: 15px; color: var(--gray-500);
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; transition: background .15s;
+      font-family: inherit;
+    }
+    .history-panel-close:hover { background: var(--gray-100); color: var(--gray-900); }
+
+    .history-list {
+      flex: 1; overflow-y: auto;
+      padding: 12px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .history-empty {
+      text-align: center; font-size: 12px; color: var(--gray-400);
+      padding: 40px 16px; line-height: 1.8;
+    }
+
+    .history-card {
+      border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+      padding: 10px 12px; background: #fff;
+      display: flex; flex-direction: column; gap: 6px;
+      transition: border-color .15s;
+    }
+    .history-card:hover { border-color: var(--gray-400); }
+    .history-card-top {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .history-cat-tag {
+      font-size: 10px; font-weight: 600; color: #fff;
+      background: #111827; padding: 2px 8px; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .history-time {
+      font-size: 10px; color: var(--gray-400); white-space: nowrap; flex: 1; text-align: right;
+    }
+    .history-del-btn {
+      width: 20px; height: 20px; padding: 0;
+      border: none; background: none; cursor: pointer;
+      color: var(--gray-400); font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 4px; flex-shrink: 0;
+      transition: background .15s, color .15s; font-family: inherit;
+    }
+    .history-del-btn:hover { background: var(--gray-100); color: var(--danger); }
+    .history-card-body {
+      font-size: 11px; color: var(--gray-700);
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .history-card-body .hrow { display: flex; gap: 5px; }
+    .history-card-body .hlbl { color: var(--gray-400); white-space: nowrap; flex-shrink: 0; }
+    .history-card-body .hval { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-restore-btn {
+      align-self: flex-end;
+      padding: 4px 10px; font-size: 11px; font-weight: 500;
+      border: 1.5px solid var(--gray-300); border-radius: var(--radius);
+      background: #fff; cursor: pointer; color: var(--gray-700);
+      transition: border-color .15s, background .15s, color .15s; font-family: inherit;
+    }
+    .history-restore-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
     /* ── Color chips ── */
     .color-chip {
       width: 28px; height: 28px;
@@ -741,6 +846,9 @@
   </svg>
   <h1>Product Prompt Builder</h1>
   <span class="badge">Beta</span>
+
+  <!-- 히스토리 버튼 -->
+  <button class="history-btn" id="history-btn">히스토리 🕐</button>
 
   <!-- API 설정 드롭다운 -->
   <div class="api-dropdown-wrap" id="api-dropdown-wrap">
@@ -1019,6 +1127,16 @@
 </div><!-- /main-content -->
 
 <div id="cat-toast"></div>
+
+<!-- ── 히스토리 사이드 패널 ── -->
+<div id="history-overlay"></div>
+<div id="history-panel">
+  <div class="history-panel-header">
+    <span class="history-panel-title">히스토리 🕐</span>
+    <button class="history-panel-close" id="history-panel-close">✕</button>
+  </div>
+  <div class="history-list" id="history-list"></div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════
@@ -2167,6 +2285,7 @@ document.getElementById('generate-btn').addEventListener('click', async () => {
     setCopyEnabled(true);
     setPromptStatus('영문 프롬프트가 생성되었습니다.', 'success');
     saveState();
+    saveHistory();
   } catch (err) {
     setPromptStatus(`프롬프트 생성 실패: ${err.message}`, 'error');
   } finally {
@@ -2390,6 +2509,182 @@ async function restoreState() {
 
 document.getElementById('custom-bg').addEventListener('input', debouncedSave);
 document.querySelectorAll('.extra-opt').forEach(cb => cb.addEventListener('change', saveState));
+
+/* ═══════════════════════════════════════════════
+   15. 히스토리
+═══════════════════════════════════════════════ */
+const LS_HISTORY  = 'ppb_history';
+const MAX_HISTORY = 7;
+
+function getCategoryLabel(major, minor) {
+  if (major === 'accessory') return '악세';
+  if (major === 'clothing') {
+    const sub = (SUB_CATEGORIES.clothing || []).find(s => s.value === minor);
+    return sub ? sub.label : '의류';
+  }
+  return '미설정';
+}
+
+function formatHistoryTime(isoStr) {
+  const d    = new Date(isoStr);
+  const diff = Date.now() - d.getTime();
+  if (diff < 60000)     return '방금 전';
+  if (diff < 3600000)   return `${Math.floor(diff / 60000)}분 전`;
+  if (diff < 86400000)  return `${Math.floor(diff / 3600000)}시간 전`;
+  const mm  = String(d.getMonth() + 1).padStart(2, '0');
+  const dd  = String(d.getDate()).padStart(2, '0');
+  const hh  = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${mm}/${dd} ${hh}:${min}`;
+}
+
+function saveHistory() {
+  const entry = {
+    id:          Date.now(),
+    savedAt:     new Date().toISOString(),
+    major:       _activeMajor,
+    minor:       _activeMinor,
+    material:    document.getElementById('material').value.trim(),
+    color:       document.getElementById('color-text').value.trim(),
+    detail:      document.getElementById('detail').value.trim(),
+    gloss:       _activeGloss,
+    length:      _activeLength,
+    extras:      [...document.querySelectorAll('.extra-opt:not(#leather-vinyl-opt):checked')]
+                   .map(cb => cb.dataset.prompt),
+    leatherVinyl: !!document.getElementById('leather-vinyl-opt')?.checked,
+  };
+  try {
+    let hist = JSON.parse(localStorage.getItem(LS_HISTORY) || '[]');
+    hist.unshift(entry);
+    if (hist.length > MAX_HISTORY) hist = hist.slice(0, MAX_HISTORY);
+    localStorage.setItem(LS_HISTORY, JSON.stringify(hist));
+  } catch (_) {}
+}
+
+function deleteHistory(idx) {
+  try {
+    const hist = JSON.parse(localStorage.getItem(LS_HISTORY) || '[]');
+    hist.splice(idx, 1);
+    localStorage.setItem(LS_HISTORY, JSON.stringify(hist));
+    renderHistoryPanel();
+  } catch (_) {}
+}
+
+function restoreFromHistory(entry) {
+  // 1. 카테고리 대분류
+  document.getElementById('category-main-group').querySelectorAll('.segment-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.value === entry.major);
+  });
+  _activeMajor = entry.major || '';
+  _activeGloss = '';
+  document.querySelectorAll('#gloss-group .gloss-chip').forEach(b => b.classList.remove('active'));
+  const lvOpt = document.getElementById('leather-vinyl-opt');
+  if (lvOpt) lvOpt.checked = false;
+
+  // 2. 소분류 렌더 + 활성화
+  renderSubGroup(_activeMajor);
+  if (entry.minor && _activeMajor === 'clothing') {
+    _activeMinor = entry.minor;
+    document.querySelectorAll('#category-sub-group .chip').forEach(b => {
+      b.classList.toggle('active', b.dataset.value === entry.minor);
+    });
+    updateLengthChips(entry.minor);
+    if (entry.length) {
+      _activeLength = entry.length;
+      document.querySelectorAll('#length-group .gloss-chip').forEach(b => {
+        b.classList.toggle('active', b.dataset.value === entry.length);
+      });
+    }
+  }
+
+  // 3. 소재 (글로스 태그 포함 재조합)
+  const stripped = stripGlossTag(entry.material || '');
+  let matVal = stripped;
+  if (entry.gloss && GLOSS_TAGS[entry.gloss]) {
+    matVal = GLOSS_TAGS[entry.gloss] + stripped;
+    _activeGloss = entry.gloss;
+    document.querySelectorAll('#gloss-group .gloss-chip').forEach(b => {
+      b.classList.toggle('active', b.dataset.value === entry.gloss);
+    });
+  }
+  if (!fieldLocks.material) document.getElementById('material').value = matVal;
+
+  // 4. 컬러
+  if (!fieldLocks.color) document.getElementById('color-text').value = entry.color || '';
+
+  // 5. 디테일
+  document.getElementById('detail').value = entry.detail || '';
+
+  // 6. 추가 옵션
+  if (lvOpt) lvOpt.checked = !!entry.leatherVinyl;
+  document.querySelectorAll('.extra-opt:not(#leather-vinyl-opt)').forEach(cb => {
+    cb.checked = (entry.extras || []).includes(cb.dataset.prompt);
+  });
+
+  translationCache = null;
+  saveState();
+  closeHistoryPanel();
+}
+
+function renderHistoryPanel() {
+  const list = document.getElementById('history-list');
+  let hist;
+  try { hist = JSON.parse(localStorage.getItem(LS_HISTORY) || '[]'); }
+  catch (_) { hist = []; }
+
+  list.innerHTML = '';
+
+  if (!hist.length) {
+    list.innerHTML = '<p class="history-empty">저장된 히스토리가 없습니다.<br>프롬프트를 생성하면 자동으로 저장됩니다.</p>';
+    return;
+  }
+
+  hist.forEach((entry, idx) => {
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    const catLabel    = getCategoryLabel(entry.major, entry.minor);
+    const matPreview  = (entry.material || '').slice(0, 30);
+    const colorPreview = (entry.color || '').slice(0, 20);
+    const timeStr     = formatHistoryTime(entry.savedAt);
+    const matEllipsis  = (entry.material || '').length > 30 ? '…' : '';
+    const clrEllipsis  = (entry.color    || '').length > 20 ? '…' : '';
+
+    card.innerHTML = `
+      <div class="history-card-top">
+        <span class="history-cat-tag">${catLabel}</span>
+        <span class="history-time">${timeStr}</span>
+        <button class="history-del-btn" data-idx="${idx}" title="삭제">✕</button>
+      </div>
+      <div class="history-card-body">
+        ${matPreview   ? `<div class="hrow"><span class="hlbl">소재</span><span class="hval">${matPreview}${matEllipsis}</span></div>` : ''}
+        ${colorPreview ? `<div class="hrow"><span class="hlbl">컬러</span><span class="hval">${colorPreview}${clrEllipsis}</span></div>` : ''}
+      </div>
+      <button class="history-restore-btn" data-idx="${idx}">불러오기</button>
+    `;
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll('.history-del-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => { e.stopPropagation(); deleteHistory(parseInt(btn.dataset.idx)); });
+  });
+  list.querySelectorAll('.history-restore-btn').forEach(btn => {
+    btn.addEventListener('click', () => restoreFromHistory(hist[parseInt(btn.dataset.idx)]));
+  });
+}
+
+function openHistoryPanel()  {
+  renderHistoryPanel();
+  document.getElementById('history-overlay').classList.add('open');
+  document.getElementById('history-panel').classList.add('open');
+}
+function closeHistoryPanel() {
+  document.getElementById('history-overlay').classList.remove('open');
+  document.getElementById('history-panel').classList.remove('open');
+}
+
+document.getElementById('history-btn').addEventListener('click', openHistoryPanel);
+document.getElementById('history-overlay').addEventListener('click', closeHistoryPanel);
+document.getElementById('history-panel-close').addEventListener('click', closeHistoryPanel);
 
 restoreState();
 </script>
