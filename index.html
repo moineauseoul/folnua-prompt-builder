@@ -733,6 +733,136 @@
     }
     .guide-panel-close:hover { background: var(--gray-100); color: var(--gray-900); }
 
+    /* ── 단어장 버튼 & 사이드 패널 ── */
+    .glossary-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 11px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      background: #fff;
+      font-size: 12px; font-weight: 500;
+      color: var(--gray-700);
+      cursor: pointer; white-space: nowrap;
+      transition: border-color .15s, background .15s;
+      font-family: inherit;
+    }
+    .glossary-btn:hover { border-color: var(--gray-400); background: var(--gray-50); }
+
+    #glossary-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.25); z-index: 500;
+    }
+    #glossary-overlay.open { display: block; }
+
+    #glossary-panel {
+      position: fixed; top: 0; right: 0;
+      width: 400px; height: 100vh;
+      background: #fff;
+      border-left: 1px solid var(--gray-200);
+      box-shadow: -6px 0 24px rgba(0,0,0,.09);
+      z-index: 501;
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+    }
+    #glossary-panel.open { transform: translateX(0); }
+    @media (max-width: 600px) { #glossary-panel { width: 100%; } }
+
+    .glossary-panel-header {
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .glossary-panel-title { font-size: 14px; font-weight: 600; }
+    .glossary-panel-close {
+      width: 28px; height: 28px; padding: 0;
+      border: none; background: none; cursor: pointer;
+      font-size: 15px; color: var(--gray-500);
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; transition: background .15s;
+      font-family: inherit;
+    }
+    .glossary-panel-close:hover { background: var(--gray-100); color: var(--gray-900); }
+
+    .glossary-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--gray-200);
+      flex-shrink: 0;
+      padding: 0 20px;
+    }
+    .glossary-tab {
+      padding: 10px 14px;
+      font-size: 13px; font-weight: 500;
+      color: var(--gray-400);
+      cursor: pointer;
+      border: none; border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      background: none;
+      font-family: inherit;
+      transition: color .15s, border-color .15s;
+    }
+    .glossary-tab:hover { color: var(--gray-700); }
+    .glossary-tab.active { color: var(--gray-900); border-bottom-color: var(--gray-900); font-weight: 600; }
+
+    .glossary-search-wrap {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      flex-shrink: 0;
+    }
+    .glossary-search {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-size: 13px; font-family: inherit;
+      color: var(--gray-900); outline: none;
+      transition: border-color .15s;
+    }
+    .glossary-search:focus { border-color: var(--gray-400); }
+    .glossary-search::placeholder { color: var(--gray-400); }
+
+    .glossary-list { flex: 1; overflow-y: auto; }
+
+    .glossary-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .glossary-item:last-child { border-bottom: none; }
+    .glossary-item:hover { background: var(--gray-50); }
+    .glossary-item-text { flex: 1; min-width: 0; }
+    .glossary-ko { font-size: 13px; font-weight: 600; color: var(--gray-900); line-height: 1.3; }
+    .glossary-en { font-size: 11px; color: var(--gray-400); margin-top: 1px; }
+    .glossary-desc { font-size: 11px; color: var(--gray-300); margin-top: 3px; line-height: 1.4; }
+    .glossary-copy-icon {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 5px;
+      color: var(--gray-300);
+      transition: color .12s, background .12s;
+    }
+    .glossary-item:hover .glossary-copy-icon { color: var(--gray-500); background: var(--gray-100); }
+    .glossary-empty {
+      padding: 40px 16px; text-align: center;
+      color: var(--gray-400); font-size: 13px;
+    }
+
+    #glossary-toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--gray-900); color: #fff;
+      padding: 8px 18px; border-radius: 20px;
+      font-size: 13px; font-weight: 500;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      z-index: 600; white-space: nowrap;
+    }
+    #glossary-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
     .guide-body {
       flex: 1; overflow-y: auto;
       padding-bottom: 32px;
@@ -1091,6 +1221,9 @@
   <!-- 가이드 버튼 -->
   <button class="guide-btn" id="guide-btn">사용 가이드 ?</button>
 
+  <!-- 단어장 버튼 -->
+  <button class="glossary-btn" id="glossary-btn">📖 단어장</button>
+
   <!-- 히스토리 버튼 -->
   <button class="history-btn" id="history-btn">히스토리 🕐</button>
 
@@ -1423,6 +1556,24 @@
 </div><!-- /main-content -->
 
 <div id="cat-toast"></div>
+
+<!-- ── 단어장 사이드 패널 ── -->
+<div id="glossary-overlay"></div>
+<div id="glossary-panel">
+  <div class="glossary-panel-header">
+    <span class="glossary-panel-title">📖 패션 용어 단어장</span>
+    <button class="glossary-panel-close" id="glossary-panel-close">✕</button>
+  </div>
+  <div class="glossary-tabs">
+    <button class="glossary-tab active" data-tab="detail">디테일</button>
+    <button class="glossary-tab" data-tab="material">소재</button>
+  </div>
+  <div class="glossary-search-wrap">
+    <input type="text" class="glossary-search" id="glossary-search" placeholder="한국어 또는 영문으로 검색..." />
+  </div>
+  <div class="glossary-list" id="glossary-list"></div>
+</div>
+<div id="glossary-toast">복사됨 ✓</div>
 
 <!-- ── 히스토리 사이드 패널 ── -->
 <div id="history-overlay"></div>
@@ -3265,6 +3416,144 @@ function closeGuidePanel() {
 document.getElementById('guide-btn').addEventListener('click', openGuidePanel);
 document.getElementById('guide-overlay').addEventListener('click', closeGuidePanel);
 document.getElementById('guide-panel-close').addEventListener('click', closeGuidePanel);
+
+// ── 단어장 ──
+const GLOSSARY_DATA = {
+  detail: [
+    { ko: '핀턱',          en: 'pintuck',            desc: '좁게 접어 박은 장식 주름' },
+    { ko: '러플',          en: 'ruffle',             desc: '물결처럼 주름 잡힌 장식단' },
+    { ko: '플리츠',        en: 'pleats',             desc: '넓게 접어 박은 구조적 주름' },
+    { ko: '개더링',        en: 'gathering',          desc: '원단을 모아 잡은 잔주름' },
+    { ko: '스모킹',        en: 'smocking',           desc: '격자로 촘촘히 잡은 주름 장식' },
+    { ko: '파이핑',        en: 'piping',             desc: '솔기나 단에 넣는 얇은 배색 라인' },
+    { ko: '바인딩 처리',   en: 'binding finish',     desc: '단면을 테이프로 감싸 마무리' },
+    { ko: '랍빠 처리',     en: 'raw hem',            desc: '단을 접지 않고 재봉만 한 마무리' },
+    { ko: '오버로크',      en: 'overlock stitch',    desc: '시접을 감싸 풀리지 않게 하는 박음질' },
+    { ko: '스티치 디테일', en: 'stitch detail',      desc: '장식용 박음질 라인' },
+    { ko: '토프스티치',    en: 'topstitch',          desc: '겉면에 드러나는 장식 박음질' },
+    { ko: '체인스티치',    en: 'chain stitch',       desc: '체인 모양으로 연결된 박음질' },
+    { ko: '스냅 단추',     en: 'snap closure',       desc: '눌러서 여미는 금속/플라스틱 단추' },
+    { ko: '훅앤아이',      en: 'hook and eye',       desc: '갈고리와 고리로 여미는 클로징' },
+    { ko: '지퍼 클로징',   en: 'zipper closure',     desc: '지퍼로 여미는 디테일' },
+    { ko: '버튼 스탠드',   en: 'button stand',       desc: '단추 여밈용 겹친 앞판 부분' },
+    { ko: '드롭숄더',      en: 'drop shoulder',      desc: '어깨선이 팔 쪽으로 내려온 구조' },
+    { ko: '라글란 소매',   en: 'raglan sleeve',      desc: '목에서 소매까지 사선으로 이어진 소매' },
+    { ko: '비숍 소매',     en: 'bishop sleeve',      desc: '손목에서 풍성하게 모아진 소매' },
+    { ko: '퍼프 소매',     en: 'puff sleeve',        desc: '어깨 부분이 부풀린 소매' },
+    { ko: '돌먼 소매',     en: 'dolman sleeve',      desc: '소매와 몸판이 하나로 이어진 박쥐형 소매' },
+    { ko: '요크',          en: 'yoke',               desc: '어깨/허리에 따로 이어 붙인 절개 패널' },
+    { ko: '사이드 슬릿',   en: 'side slit',          desc: '옆선 하단에 트인 절개' },
+    { ko: '벤트',          en: 'back vent',          desc: '재킷/코트 뒷단의 트임' },
+    { ko: '절개선',        en: 'seam line',          desc: '디자인을 위해 넣은 구조적 솔기' },
+    { ko: '패치 포켓',     en: 'patch pocket',       desc: '겉면에 붙인 포켓' },
+    { ko: '웰트 포켓',     en: 'welt pocket',        desc: '입구만 보이고 안으로 들어간 포켓' },
+    { ko: '플랩 포켓',     en: 'flap pocket',        desc: '덮개가 있는 포켓' },
+    { ko: '카고 포켓',     en: 'cargo pocket',       desc: '옆면에 붙은 큰 실용 포켓' },
+    { ko: '바텀 밴딩',     en: 'banded hem',         desc: '밑단에 별도 밴드를 달아 마무리' },
+    { ko: '드로스트링',    en: 'drawstring',         desc: '끈으로 조이는 디테일' },
+    { ko: '코드스토퍼',    en: 'cord stopper',       desc: '드로스트링 끝에 달린 조임 장치' },
+    { ko: '와펜',          en: 'wappen / emblem patch', desc: '천에 자수나 직조로 만든 패치' },
+    { ko: '금속 로고',     en: 'metal logo charm',   desc: '금속 소재의 브랜드 로고 장식' },
+    { ko: '자수 로고',     en: 'embroidered logo',   desc: '실로 수놓은 브랜드 로고' },
+  ],
+  material: [
+    { ko: '코튼',          en: 'cotton',             desc: '천연 면 소재, 부드럽고 통기성 좋음' },
+    { ko: '코튼 저지',     en: 'cotton jersey',      desc: '신축성 있는 면 니트' },
+    { ko: '코튼 포플린',   en: 'cotton poplin',      desc: '얇고 빳빳한 평직 면' },
+    { ko: '코튼 개버딘',   en: 'cotton gabardine',   desc: '능직으로 짠 두툼하고 탄탄한 면' },
+    { ko: '린넨',          en: 'linen',              desc: '마 소재, 뻣뻣하고 시원한 텍스처' },
+    { ko: '린넨 혼방',     en: 'linen blend',        desc: '린넨에 다른 소재 혼방, 구김 완화' },
+    { ko: '울',            en: 'wool',               desc: '양모 소재, 보온성 높음' },
+    { ko: '울 혼방',       en: 'wool blend',         desc: '울에 다른 소재 혼방' },
+    { ko: '메리노 울',     en: 'merino wool',        desc: '가늘고 부드러운 고급 울' },
+    { ko: '캐시미어',      en: 'cashmere',           desc: '극세사 염소털, 매우 부드럽고 고급스러움' },
+    { ko: '알파카',        en: 'alpaca',             desc: '알파카 털, 가볍고 보온성 높음' },
+    { ko: '모달',          en: 'modal',              desc: '비스코스 계열, 부드럽고 광택 있음' },
+    { ko: '비스코스',      en: 'viscose',            desc: '재생 셀룰로오스 섬유, 드레이프성 좋음' },
+    { ko: '아세테이트',    en: 'acetate',            desc: '광택 있는 합성 섬유, 실크 느낌' },
+    { ko: '폴리에스터',    en: 'polyester',          desc: '합성 섬유, 형태 안정성 높음' },
+    { ko: '나일론',        en: 'nylon',              desc: '가볍고 내구성 강한 합성 섬유' },
+    { ko: '테크니컬 패브릭', en: 'technical fabric', desc: '기능성 합성 소재' },
+    { ko: '새틴',          en: 'satin',              desc: '표면이 매끄럽고 광택 강한 직물' },
+    { ko: '실크 새틴',     en: 'silk satin',         desc: '실크로 짠 새틴, 고급 광택' },
+    { ko: '시폰',          en: 'chiffon',            desc: '얇고 투명한 드레이프 소재' },
+    { ko: '시어',          en: 'sheer',              desc: '비치는 얇은 소재 총칭' },
+    { ko: '오간자',        en: 'organza',            desc: '빳빳하고 반투명한 얇은 직물' },
+    { ko: '레이스',        en: 'lace',               desc: '실로 짠 망사 패턴 직물' },
+    { ko: '벨벳',          en: 'velvet',             desc: '파일 직물, 부드럽고 광택 있음' },
+    { ko: '코듀로이',      en: 'corduroy',           desc: '골이 파인 파일 직물' },
+    { ko: '트위드',        en: 'tweed',              desc: '거칠고 두툼한 울 계열 방모직' },
+    { ko: '플리스',        en: 'fleece',             desc: '부드러운 기모 소재' },
+    { ko: '데님',          en: 'denim',              desc: '능직 코튼, 청바지 소재' },
+    { ko: '레더',          en: 'leather',            desc: '동물 가죽 소재' },
+    { ko: '스웨이드',      en: 'suede',              desc: '가죽 안쪽을 기모 처리한 소재' },
+    { ko: '비건 레더',     en: 'vegan leather',      desc: '동물성 성분 없는 인조 가죽' },
+    { ko: 'PU 레더',       en: 'PU leather',         desc: '폴리우레탄 코팅 인조 가죽' },
+    { ko: '나일론 태피터', en: 'nylon taffeta',      desc: '얇고 바스락거리는 나일론 직물' },
+    { ko: '퀼팅',          en: 'quilting',           desc: '솜을 넣어 누빈 소재' },
+    { ko: '본딩',          en: 'bonding fabric',     desc: '두 겹을 접착한 두툼한 소재' },
+  ],
+};
+
+let _glossaryTab = 'detail';
+let _glossaryToastTimer = null;
+
+function renderGlossary() {
+  const q = (document.getElementById('glossary-search').value || '').toLowerCase().trim();
+  const list = document.getElementById('glossary-list');
+  const copyIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+  const data = GLOSSARY_DATA[_glossaryTab].filter(item =>
+    !q || item.ko.includes(q) || item.en.toLowerCase().includes(q) || item.desc.includes(q)
+  );
+  if (!data.length) {
+    list.innerHTML = '<div class="glossary-empty">검색 결과가 없습니다</div>';
+    return;
+  }
+  list.innerHTML = data.map(item => `
+    <div class="glossary-item" data-ko="${item.ko}" data-en="${item.en}">
+      <div class="glossary-item-text">
+        <div class="glossary-ko">${item.ko}</div>
+        <div class="glossary-en">${item.en}</div>
+        <div class="glossary-desc">${item.desc}</div>
+      </div>
+      <div class="glossary-copy-icon">${copyIcon}</div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.glossary-item').forEach(el => {
+    el.addEventListener('click', () => copyGlossaryItem(el.dataset.ko, el.dataset.en));
+  });
+}
+
+function copyGlossaryItem(ko, en) {
+  navigator.clipboard.writeText(`${ko} (${en})`).then(() => {
+    const toast = document.getElementById('glossary-toast');
+    toast.classList.add('show');
+    clearTimeout(_glossaryToastTimer);
+    _glossaryToastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+  });
+}
+
+function openGlossaryPanel() {
+  document.getElementById('glossary-overlay').classList.add('open');
+  document.getElementById('glossary-panel').classList.add('open');
+  renderGlossary();
+}
+function closeGlossaryPanel() {
+  document.getElementById('glossary-overlay').classList.remove('open');
+  document.getElementById('glossary-panel').classList.remove('open');
+}
+document.getElementById('glossary-btn').addEventListener('click', openGlossaryPanel);
+document.getElementById('glossary-overlay').addEventListener('click', closeGlossaryPanel);
+document.getElementById('glossary-panel-close').addEventListener('click', closeGlossaryPanel);
+document.querySelectorAll('.glossary-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.glossary-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    _glossaryTab = tab.dataset.tab;
+    renderGlossary();
+  });
+});
+document.getElementById('glossary-search').addEventListener('input', renderGlossary);
 
 restoreState().then(() => updateProgressBar());
 </script>
