@@ -2872,7 +2872,7 @@ function buildPrompt(values) {
   } else if (category === 'top') {
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
-      `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The garment is displayed suspended in air, showing its natural shape and structured silhouette.`,
+      `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no body form, no hands, no props. The garment is displayed as a flat hanging product shot — no body shape inside, no chest or torso volume. Completely empty inside the garment, like a ghost mannequin with the mannequin fully removed.`,
       ...(cut !== 'detail' ? [MARGIN_LINE] : []),
       isLeatherVinyl
         ? `Retouch and enhance the garment professionally: clean up the overall appearance, remove lint, dust, and minor distracting artifacts. Relight with soft, even studio lighting from the front. No shadows on the background. Preserve natural leather/vinyl wrinkles and surface texture — do NOT flatten or remove natural material creases. The wrinkles are part of the material character and must remain visible.`
