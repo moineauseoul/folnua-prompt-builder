@@ -2976,6 +2976,7 @@ function buildPrompt(values) {
   }
 
   if (frontRefDesc) lines.push(`Front view reference (completed result): ${frontRefDesc}`);
+  if (cut === 'back') lines.push(`The second reference image is a completed front view shot provided only for lighting tone, size ratio, silhouette, and length reference. Do NOT copy design details, logos, or embellishments from the second reference image.`);
 
   return lines.join('\n');
 }
