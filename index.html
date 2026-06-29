@@ -2862,9 +2862,7 @@ function buildPrompt(values) {
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       compositionLine,
-      detailPart === 'pocket-bottom'
-        ? `Retouch thoroughly — remove all wrinkles, creases, and lint. Make the garment look clean, smooth, and neatly pressed. Preserve the natural fabric texture and weave pattern while removing any distortion from hanging or folding.`
-        : `Retouch lightly — remove lint and dust only. Preserve natural fabric texture and authentic detail character.`,
+      `Retouch lightly — remove lint and dust only. Preserve natural fabric texture and authentic detail character.`,
       `Relight with soft, even studio lighting. Natural subtle shadow to emphasize texture and depth.`,
       buildMatLine(material, color, cleanDetail),
       `Render all details sharply and accurately. Professional e-commerce close-up shot. No stylization, no artistic effects, no color distortion.`,
