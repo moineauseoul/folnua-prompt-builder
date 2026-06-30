@@ -3102,6 +3102,21 @@ function buildPrompt(values) {
       ...extras,
     ];
 
+  } else if (category === 'acc-wallet') {
+    /* 지갑 / 벨트 전용 */
+    lines = [
+      `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
+      `${cutView} view, centered composition. Clean catalog product shot. No mannequin, no model, no hanger, no hands, no props.`,
+      `Center the product with equal margins on all sides. The entire product must be fully visible — do NOT crop any part of it.`,
+      `Retouch thoroughly — actively correct any shape distortions, surface unevenness, or structural warping. Smooth out creases, wrinkles, and irregular surface variations that obscure the product's true form. Keep the overall silhouette clean, sharp, and well-defined. Preserve the natural leather grain, fabric texture, and material character — do NOT flatten the surface to a uniform tone.`,
+      `Relight with soft, even studio lighting from the front. Subtle shadow beneath the product only. No harsh shadows on the background.`,
+      buildMatLine(material, color, values.detail),
+      `Preserve exact product shape, proportions, hardware detail, and logo accurately.`,
+      `Ensure logo and hardware remain sharp and clearly readable.`,
+      `Clean e-commerce product shot. No stylization, no artistic effects, no color distortion.`,
+      ...extras,
+    ];
+
   } else if (category.startsWith('acc-') || category === 'accessory') {
     /* 악세 — 스툴컷 (인형키링 / 모자 기타컷 / 헤어핀 / 지갑 / 벨트) */
     lines = [
