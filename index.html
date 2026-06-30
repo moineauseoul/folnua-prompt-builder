@@ -3035,8 +3035,23 @@ function buildPrompt(values) {
       ];
     }
 
+  } else if (category === 'acc-hat' && cut === 'front') {
+    /* 모자 — 정면컷 전용 */
+    lines = [
+      `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
+      `Front view, centered straight-on composition. Clean catalog product shot. The hat is displayed floating in air, front-facing, with the brim naturally angled slightly forward as it would sit on a head. No stool, no surface, no mannequin, no hands, no props.`,
+      `Center the hat with equal left and right margins. Top margin: approximately 10% of image height. Bottom margin: approximately 10% of image height. The ENTIRE hat must be fully visible including the full brim and crown top.`,
+      `Retouch lightly — remove lint and dust only. Preserve natural fabric texture and authentic detail character.`,
+      `Relight with soft, even studio lighting from the front. Subtle shadow beneath the brim for natural depth. No harsh shadows on the background.`,
+      `IMPORTANT: Preserve the EXACT shape, proportions, and color blocking of the original hat. Do NOT alter the brim shape, crown height, or color separation.`,
+      buildMatLine(material, color, values.detail),
+      `Keep embroidered logo details sharp, clean, and readable. Render embroidery texture accurately.`,
+      `Professional e-commerce product shot. No stylization, no artistic effects, no color distortion.`,
+      ...extras,
+    ];
+
   } else if (category.startsWith('acc-') || category === 'accessory') {
-    /* 악세 — 스툴컷 (인형키링 / 모자 / 헤어핀 / 지갑 / 벨트) */
+    /* 악세 — 스툴컷 (인형키링 / 모자 기타컷 / 헤어핀 / 지갑 / 벨트) */
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered composition. Clean catalog product shot. No mannequin, no model, no hanger, no hands, no props.`,
