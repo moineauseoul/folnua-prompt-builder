@@ -2860,13 +2860,18 @@ Respond in JSON only: {"material": "", "details": "", "color": ""}`,
   return translated;
 }
 
+const ACC_SEMI_GLOSSY_TEXT = 'semi-glossy finish — the leather surface MUST show clearly visible sheen and reflective highlights, similar to polished or coated leather. This is explicitly NOT a matte or flat finish — render noticeable light reflection across the surface, especially on curved or raised areas. Override any matte appearance from the reference image.';
+
 function buildMatLine(mat, color, detail) {
   // 글로스 태그는 번역 과정에서 달라질 수 있으므로 패턴으로 제거
   let cleaned = mat.replace(/^\[(?:무광|세미글로시|유광|matte|semi-glossy|glossy)[^\]]*\]\s*/i, '');
   if (_activeGloss === 'semi-glossy' || _activeGloss === 'glossy') {
     cleaned = cleaned.replace(/\bmatte\b/gi, '').replace(/\s{2,}/g, ' ').trim().replace(/^[,\s]+|[,\s]+$/g, '');
   }
-  const finishText = GLOSS_FINISH_PROMPTS[_activeGloss] || '';
+  let finishText = GLOSS_FINISH_PROMPTS[_activeGloss] || '';
+  if (_activeGloss === 'semi-glossy' && _activeMajor === 'accessory') {
+    finishText = ACC_SEMI_GLOSSY_TEXT;
+  }
   return finishText
     ? `Material: ${cleaned} (${finishText}). Color: ${color}. Key details: ${detail}.`
     : `Material: ${cleaned}. Color: ${color}. Key details: ${detail}.`;
