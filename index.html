@@ -2050,12 +2050,14 @@ document.getElementById('front-ref-file-input').addEventListener('change', async
   document.getElementById('front-ref-thumb-img').src = url;
   document.getElementById('front-ref-thumb').classList.add('has-image');
   e.target.value = '';
+  saveImages();
 });
 document.getElementById('front-ref-del-btn').addEventListener('click', () => {
   if (frontRefImage?.url) URL.revokeObjectURL(frontRefImage.url);
   frontRefImage = null;
   document.getElementById('front-ref-thumb').classList.remove('has-image');
   document.getElementById('front-ref-thumb-img').src = '';
+  saveImages();
 });
 
 const frontRefSlot = document.getElementById('front-ref-slot');
@@ -2073,6 +2075,7 @@ frontRefSlot.addEventListener('drop', (e) => {
   frontRefImage = { file, url };
   document.getElementById('front-ref-thumb-img').src = url;
   document.getElementById('front-ref-thumb').classList.add('has-image');
+  saveImages();
 });
 
 analyzeBtn.addEventListener('click', async () => {
@@ -3208,6 +3211,10 @@ function resetAll() {
   document.querySelectorAll('#cut-group .chip').forEach(b => b.classList.remove('active'));
   resetCutGroup();
   document.querySelectorAll('#bg-group .color-chip').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.extra-opt').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#detail-part-group .chip').forEach(b => b.classList.remove('active'));
+  const _dpr = document.getElementById('detail-part-row');
+  if (_dpr) _dpr.style.display = 'none';
   localStorage.removeItem('ppb_state');
   clearSavedImages();
   translationCache = null;
@@ -3259,7 +3266,16 @@ function saveState() {
       detailRefs:   [1,2,3,4].map(i => document.getElementById(`detail-ref-${i}`)?.value || ''),
       frontRefDesc: document.getElementById('front-ref-desc')?.value || '',
       locks:        { material: fieldLocks.material, color: fieldLocks.color },
-      prompt:       document.getElementById('prompt-output').value,
+      major:        _activeMajor,
+      minor:        _activeMinor,
+      gloss:        _activeGloss,
+      length:       _activeLength,
+      cut:          getActiveChip('cut-group'),
+      detailPart:   getActiveChip('detail-part-group'),
+      bg:           getActiveChip('bg-group'),
+      customBg:     document.getElementById('custom-bg').value,
+      extras:       [...document.querySelectorAll('.extra-opt:not(#leather-vinyl-opt):checked')].map(cb => cb.dataset.prompt),
+      leatherVinyl: !!document.getElementById('leather-vinyl-opt')?.checked,
     };
     localStorage.setItem(LS_STATE, JSON.stringify(state));
   } catch (_) {}
@@ -3274,6 +3290,8 @@ async function saveImages() {
       if (images[i]?.file) store.put(images[i].file, i);
       else                  store.delete(i);
     }
+    if (frontRefImage?.file) store.put(frontRefImage.file, 'front-ref');
+    else                      store.delete('front-ref');
     await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = e => rej(e.target.error); });
   } catch (err) { console.warn('[saveImages]', err); }
 }
@@ -3311,19 +3329,28 @@ async function restoreImages() {
       r.onsuccess = e => res(e.target.result);
       r.onerror   = e => rej(e.target.error);
     });
-    for (const i of keys) {
-      if (i < 0 || i >= MAX_IMAGES) continue;
+    for (const key of keys) {
       const file = await new Promise((res, rej) => {
-        const r = store.get(i);
+        const r = store.get(key);
         r.onsuccess = e => res(e.target.result);
         r.onerror   = e => rej(e.target.error);
       });
       if (!file) continue;
-      if (images[i]?.url) URL.revokeObjectURL(images[i].url);
-      const url = URL.createObjectURL(file);
-      images[i] = { file, url };
-      document.getElementById(`thumb-img-${i}`).src = url;
-      document.getElementById(`thumb-${i}`).classList.add('has-image');
+      if (key === 'front-ref') {
+        if (frontRefImage?.url) URL.revokeObjectURL(frontRefImage.url);
+        const url = URL.createObjectURL(file);
+        frontRefImage = { file, url };
+        document.getElementById('front-ref-thumb-img').src = url;
+        document.getElementById('front-ref-thumb').classList.add('has-image');
+      } else {
+        const i = key;
+        if (typeof i !== 'number' || i < 0 || i >= MAX_IMAGES) continue;
+        if (images[i]?.url) URL.revokeObjectURL(images[i].url);
+        const url = URL.createObjectURL(file);
+        images[i] = { file, url };
+        document.getElementById(`thumb-img-${i}`).src = url;
+        document.getElementById(`thumb-${i}`).classList.add('has-image');
+      }
     }
   } catch (err) { console.warn('[restoreImages]', err); }
   updateCount();
@@ -3334,15 +3361,8 @@ async function restoreState() {
     const raw = localStorage.getItem(LS_STATE);
     if (raw) {
       const s = JSON.parse(raw);
-      if (s.material)  document.getElementById('material').value   = s.material;
-      if (s.detail)    document.getElementById('detail').value     = s.detail;
-      if (s.color)     document.getElementById('color-text').value = s.color;
-      if (s.mainRef) { const el = document.getElementById('detail-ref-0'); if (el) el.value = s.mainRef; }
-      (s.detailRefs || []).forEach((val, i) => {
-        const el = document.getElementById(`detail-ref-${i + 1}`);
-        if (el && val) el.value = val;
-      });
-      if (s.frontRefDesc) { const el = document.getElementById('front-ref-desc'); if (el) el.value = s.frontRefDesc; }
+
+      // 1. 잠금 상태 (텍스트 복원 전에 적용)
       if (s.locks) {
         Object.keys(s.locks).forEach(k => {
           if (Object.prototype.hasOwnProperty.call(fieldLocks, k)) {
@@ -3351,15 +3371,80 @@ async function restoreState() {
           }
         });
       }
-      if (s.prompt) {
-        document.getElementById('prompt-output').value = s.prompt;
-        setCopyEnabled(true);
+
+      // 2. 카테고리 대분류 / 소분류
+      if (s.major) {
+        _activeMajor = s.major;
+        document.querySelectorAll('#category-main-group .segment-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.value === s.major);
+        });
+        renderSubGroup(s.major);
+        if (s.minor) {
+          _activeMinor = s.minor;
+          document.querySelectorAll('#category-sub-group .chip').forEach(b => {
+            b.classList.toggle('active', b.dataset.value === s.minor);
+          });
+          if (s.major === 'clothing') {
+            updateLengthChips(s.minor);
+            if (s.length) {
+              _activeLength = s.length;
+              document.querySelectorAll('#length-group .gloss-chip').forEach(b => {
+                b.classList.toggle('active', b.dataset.value === s.length);
+              });
+            }
+          } else if (s.major === 'accessory') {
+            updateCutGroupForAccessory(s.minor);
+          }
+        }
       }
+
+      // 3. 광택 퀵셀렉터
+      if (s.gloss && GLOSS_TAGS[s.gloss]) {
+        _activeGloss = s.gloss;
+        document.querySelectorAll('#gloss-group .gloss-chip').forEach(b => {
+          b.classList.toggle('active', b.dataset.value === s.gloss);
+        });
+      }
+
+      // 4. 컷 종류 (updateSlotPlaceholders는 _activeMajor 필요 — 2번 이후)
+      if (s.cut) {
+        _restoreChip('cut-group', s.cut);
+        updateSlotPlaceholders(s.cut);
+      }
+
+      // 5. 클로즈업 부위 (의류일 때만)
+      if (s.detailPart && s.major !== 'accessory') {
+        _restoreChip('detail-part-group', s.detailPart);
+      }
+
+      // 6. 배경색
+      if (s.bg) _restoreColorChip(s.bg);
+      if (s.customBg) document.getElementById('custom-bg').value = s.customBg;
+
+      // 7. 추가 옵션 / 레더-비닐
+      const lvOpt = document.getElementById('leather-vinyl-opt');
+      if (lvOpt) lvOpt.checked = !!s.leatherVinyl;
+      document.querySelectorAll('.extra-opt:not(#leather-vinyl-opt)').forEach(cb => {
+        cb.checked = (s.extras || []).includes(cb.dataset.prompt);
+      });
+
+      // 8. 텍스트 필드 (카테고리/length 복원 이후 — 태그 덮어쓰기 방지)
+      const matVal = (s.gloss && GLOSS_TAGS[s.gloss] ? GLOSS_TAGS[s.gloss] : '') + (s.material || '');
+      if (matVal) document.getElementById('material').value = matVal;
+      if (s.detail) document.getElementById('detail').value = s.detail;
+      if (s.color)  document.getElementById('color-text').value = s.color;
+      if (s.mainRef) { const el = document.getElementById('detail-ref-0'); if (el) el.value = s.mainRef; }
+      (s.detailRefs || []).forEach((val, i) => {
+        const el = document.getElementById(`detail-ref-${i + 1}`);
+        if (el && val) el.value = val;
+      });
+      if (s.frontRefDesc) { const el = document.getElementById('front-ref-desc'); if (el) el.value = s.frontRefDesc; }
     }
   } catch (_) {}
 
   await restoreImages();
   localStorage.removeItem('ppb_images'); // 구 localStorage 이미지 데이터 정리
+  updateProgressBar();
 }
 
 /* 텍스트 필드 자동 저장 */
