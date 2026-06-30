@@ -166,10 +166,10 @@
     }
     .progress-steps {
       display: flex;
-      gap: 0;
       overflow: hidden;
       border-radius: 6px;
       border: 1px solid #dddddd;
+      background: #ffffff;
       width: 100%;
       height: 44px;
     }
@@ -186,39 +186,17 @@
       background: #ffffff;
       border: none;
       transition: background .2s;
+      /* 중간 스텝: 왼쪽 노치 + 오른쪽 화살표 */
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%);
     }
-    #pstep-1 { z-index: 6; } #pstep-2 { z-index: 5; } #pstep-3 { z-index: 4; }
-    #pstep-4 { z-index: 3; } #pstep-5 { z-index: 2; } #pstep-6 { z-index: 1; }
-    /* 바깥쪽 컬러 삼각형 */
-    .progress-step::after {
-      content: '';
-      position: absolute;
-      top: 50%; right: -16px;
-      transform: translateY(-50%);
-      z-index: 2;
-      width: 0; height: 0;
-      border-top: 22px solid transparent;
-      border-bottom: 22px solid transparent;
-      border-left: 16px solid #dddddd;
-      border-right: 0;
-      transition: border-left-color .2s;
+    /* 첫 번째 스텝: 왼쪽 노치 없음 */
+    .progress-steps .progress-step:first-child {
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%);
     }
-    .progress-step:last-child::after { display: none; }
-    /* 안쪽 배경색 삼각형 — 아웃라인 효과 */
-    .progress-step::before {
-      content: '';
-      position: absolute;
-      top: 50%; right: -14px;
-      transform: translateY(-50%);
-      z-index: 3;
-      width: 0; height: 0;
-      border-top: 21px solid transparent;
-      border-bottom: 21px solid transparent;
-      border-left: 14px solid #ffffff;
-      border-right: 0;
-      transition: border-left-color .2s;
+    /* 마지막 스텝: 오른쪽 화살표 없음 */
+    .progress-steps .progress-step:last-child {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 16px 50%);
     }
-    .progress-step:last-child::before { display: none; }
     .pstep-main {
       font-size: 12px; font-weight: 500;
       color: #666666;
@@ -232,31 +210,24 @@
     }
     /* done */
     .pstep-done { background: #1a1a1a; }
-    .pstep-done::after  { border-left-color: #1a1a1a; }
-    .pstep-done::before { border-left-color: #1a1a1a; }
     .pstep-done .pstep-main { color: #fff; font-weight: 600; }
     .pstep-done .pstep-opt  { color: rgba(255,255,255,.5); }
     /* active */
     .pstep-active { background: #aaaaaa; }
-    .pstep-active::after  { border-left-color: #aaaaaa; }
-    .pstep-active::before { border-left-color: #aaaaaa; }
     .pstep-active .pstep-main { color: #fff; font-weight: 500; }
     .pstep-active .pstep-opt  { color: rgba(255,255,255,.7); }
-    /* optional (not done) — 아웃라인 화살표, 흰 배경 */
+    /* optional / pending — 흰 배경 */
     .pstep-optional { background: #ffffff; }
     .pstep-optional .pstep-main { color: #666666; }
     .pstep-optional .pstep-opt  { color: #bbb; }
-    /* pending — 아웃라인 화살표, 흰 배경 */
     .pstep-pending { background: #ffffff; }
-    .pstep-pending .pstep-main { color: #666666; }
+    .pstep-pending .pstep-main { color: #aaaaaa; }
     .pstep-pending .pstep-opt  { display: none; }
     @media (max-width: 800px) {
       .pstep-opt { display: none; }
       #progress-nav { padding: 0 20px; }
       .progress-steps { height: 40px; }
       .progress-step { padding: 0 14px; }
-      .progress-step::after  { border-top-width: 20px; border-bottom-width: 20px; }
-      .progress-step::before { border-top-width: 19px; border-bottom-width: 19px; }
     }
 
     .main-cols {
