@@ -3035,6 +3035,21 @@ function buildPrompt(values) {
       ];
     }
 
+  } else if (category === 'acc-hat' && cut === 'three-quarter') {
+    /* 모자 — 반측면컷 전용 */
+    lines = [
+      `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
+      `Three-quarter view, the hat is angled approximately 45 degrees to show both the front panel and one side panel. Clean catalog product shot. The hat is displayed floating in air with the brim naturally angled slightly forward. No stool, no surface, no mannequin, no hands, no props.`,
+      `Center the hat with equal top and bottom margins. The ENTIRE hat must be fully visible including the full brim tip and crown top.`,
+      `Retouch thoroughly — remove lint, dust, and minor surface irregularities. Smooth out any slight distortions in the crown shape while preserving the natural fabric texture and corduroy rib pattern. Keep the overall silhouette clean and well-defined.`,
+      `Relight with soft, even studio lighting. Subtle shadow beneath the brim for natural depth. No harsh shadows on the background.`,
+      `IMPORTANT: Preserve the EXACT shape, proportions, and color blocking of the original hat. Do NOT alter the brim shape, crown height, or color separation.`,
+      buildMatLine(material, color, values.detail),
+      `Keep embroidered logo details sharp, clean, and readable. Render embroidery texture accurately.`,
+      `Professional e-commerce product shot. No stylization, no artistic effects, no color distortion.`,
+      ...extras,
+    ];
+
   } else if (category === 'acc-hat' && cut === 'front') {
     /* 모자 — 정면컷 전용 */
     lines = [
