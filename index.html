@@ -2119,9 +2119,10 @@ function updateSlotPlaceholders(cut) {
   const frontRefSec    = document.getElementById('front-ref-section');
   const defaultDetail  = '위치 포함 필수 예: 하단 우측 금속 로고';
 
-  /* 클로즈업 부위 퀵셀렉터 표시/초기화 */
+  /* 클로즈업 부위 퀵셀렉터 표시/초기화 — 악세 카테고리에서는 표시 안 함 */
   const detailPartRow = document.getElementById('detail-part-row');
-  if (detailPartRow) detailPartRow.style.display = cut === 'detail' ? '' : 'none';
+  const showDetailPart = cut === 'detail' && _activeMajor !== 'accessory';
+  if (detailPartRow) detailPartRow.style.display = showDetailPart ? '' : 'none';
   document.querySelectorAll('#detail-part-group .chip').forEach(b => b.classList.remove('active'));
 
   if (cut === 'back') {
@@ -2356,6 +2357,7 @@ document.getElementById('category-main-group').querySelectorAll('.segment-btn').
     const lvOpt = document.getElementById('leather-vinyl-opt');
     if (lvOpt) lvOpt.checked = false;
     renderSubGroup(_activeMajor);
+    updateSlotPlaceholders(getActiveChip('cut-group'));
     saveState();
     updateProgressBar();
   });
