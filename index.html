@@ -2894,7 +2894,21 @@ function buildPrompt(values) {
 
   let lines;
 
-  if (cut === 'detail' && !ACC_FLATLAY.has(category)) {
+  if (category === 'acc-hair' && cut === 'detail') {
+    /* 헤어 악세 — 클로즈업컷 전용 */
+    lines = [
+      `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
+      `Detail close-up shot. Preserve the EXACT camera angle, composition, framing, and margins from the reference image — do NOT flatten, straighten, or re-compose the product into a different layout. If the product is angled or tilted in the reference, keep that same angle and tilt in the result.`,
+      `Do NOT change the natural draping, folding, or positioning of the product as shown in the reference.`,
+      `Retouch lightly — remove lint and dust only. Preserve natural fabric texture and authentic detail character.`,
+      `Relight with soft, even studio lighting. Natural subtle shadow to emphasize texture and depth.`,
+      buildMatLine(material, color, values.detail),
+      `Render fabric texture and material quality accurately. Emphasize the surface texture and tactile quality of the fabric (velvet sheen, knit texture, etc. as applicable).`,
+      `Professional e-commerce close-up shot. No stylization, no artistic effects, no color distortion.`,
+      ...extras,
+    ];
+
+  } else if (cut === 'detail' && !ACC_FLATLAY.has(category)) {
     const detailPart = getActiveChip('detail-part-group');
     const DETAIL_COMPOSITIONS = {
       'neckline':      `Detail close-up shot. Frame straight-on and level on the neckline area — the neckline must appear horizontal and symmetrical. Show collar/neckline structure and upper chest area. Natural margin at top (background visible above neckline). Do NOT tilt or angle the frame.`,
