@@ -2899,6 +2899,7 @@ function buildPrompt(values) {
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `Detail close-up shot. Preserve the EXACT camera angle, composition, framing, and margins from the reference image — do NOT flatten, straighten, or re-compose the product into a different layout. If the product is angled or tilted in the reference, keep that same angle and tilt in the result.`,
+      `Match the reference image's cropping and framing exactly — whichever part of the product extends beyond the frame edges in the reference (top, bottom, left, or right) must extend beyond the frame edges in the same way in the result. Do NOT reposition the product to fit it entirely within frame if the reference shows it partially cropped.`,
       `Do NOT change the natural draping, folding, or positioning of the product as shown in the reference.`,
       `Retouch lightly — remove lint and dust only. Preserve natural fabric texture and authentic detail character.`,
       `Relight with soft, even studio lighting. Natural subtle shadow to emphasize texture and depth.`,
