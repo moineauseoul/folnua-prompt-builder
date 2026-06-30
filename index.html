@@ -24,6 +24,7 @@
       --accent-hover: #000000;
       --accent-light: #f3f4f6;
       --accent-border:#9ca3af;
+      --primary:      #111827;
       --success:      #111827;
       --success-bg:   #f9fafb;
       --success-border:#d1d5db;
@@ -165,6 +166,7 @@
     }
     .progress-steps {
       display: flex;
+      gap: 0;
       overflow: hidden;
       border-radius: 6px;
       border: 1px solid #dddddd;
@@ -172,7 +174,7 @@
       height: 44px;
     }
     .progress-step {
-      flex: 1;
+      flex: 1 1 0%;
       position: relative;
       display: flex;
       flex-direction: column;
@@ -182,6 +184,7 @@
       min-width: 0;
       padding: 0 20px;
       background: #ffffff;
+      border: none;
       transition: background .2s;
     }
     #pstep-1 { z-index: 6; } #pstep-2 { z-index: 5; } #pstep-3 { z-index: 4; }
@@ -197,10 +200,11 @@
       border-top: 22px solid transparent;
       border-bottom: 22px solid transparent;
       border-left: 16px solid #dddddd;
+      border-right: 0;
       transition: border-left-color .2s;
     }
     .progress-step:last-child::after { display: none; }
-    /* 안쪽 흰색 삼각형 — 미완료 스텝에서 아웃라인 효과 */
+    /* 안쪽 배경색 삼각형 — 아웃라인 효과 */
     .progress-step::before {
       content: '';
       position: absolute;
@@ -211,6 +215,7 @@
       border-top: 21px solid transparent;
       border-bottom: 21px solid transparent;
       border-left: 14px solid #ffffff;
+      border-right: 0;
       transition: border-left-color .2s;
     }
     .progress-step:last-child::before { display: none; }
