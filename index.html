@@ -1770,8 +1770,23 @@ const BG_HEX = {
 
 const SUB_CATEGORIES = {
   'clothing':  [{ value: 'outer', label: '아우터' }, { value: 'top', label: '상의' }, { value: 'pants', label: '바지' }, { value: 'skirt', label: '스커트' }, { value: 'dress', label: '드레스' }],
-  'accessory': [],
+  'accessory': [
+    { value: 'acc-keyring', label: '인형키링' },
+    { value: 'acc-hat',     label: '모자' },
+    { value: 'acc-hair',    label: '헤어핀 / 헤어밴드 / 헤어클로우' },
+    { value: 'acc-wallet',  label: '지갑 / 벨트' },
+    { value: 'acc-scarf',   label: '스카프 / 장갑 / 목도리 / 파우치' },
+  ],
 };
+
+const ACC_CUTS = {
+  'acc-keyring': ['front', 'three-quarter'],
+  'acc-hat':     ['front', 'three-quarter', 'back'],
+  'acc-hair':    ['front', 'three-quarter', 'detail'],
+  'acc-wallet':  ['front', 'three-quarter', 'back', 'detail'],
+  'acc-scarf':   ['front', 'back', 'detail'],
+};
+const ACC_FLATLAY = new Set(['acc-scarf']);
 
 const GLOSS_TAGS = {
   'matte':       '[무광 / matte finish] ',
@@ -2069,6 +2084,10 @@ analyzeBtn.addEventListener('click', async () => {
     showCatToast('의류 종류를 선택해주세요');
     return;
   }
+  if (_activeMajor === 'accessory' && !_activeMinor) {
+    showCatToast('악세 소분류를 선택해주세요');
+    return;
+  }
   if (!images[0]?.file) {
     showBanner('error', '먼저 첫 번째 슬롯에 이미지를 업로드해 주세요.');
     setTimeout(hideBanner, 3000);
@@ -2167,7 +2186,7 @@ function updateProgressBar() {
     : !!(_activeGloss || _activeLength);
 
   const checks = [
-    { done: !!(_activeMajor && (_activeMajor === 'accessory' || _activeMinor)), optional: false },
+    { done: !!(_activeMajor && _activeMinor), optional: false },
     { done: !!images[0],                                                          optional: false },
     { done: step3Done,                                                            optional: true  },
     { done: _analysisComplete,                                                    optional: false },
@@ -2203,8 +2222,26 @@ function stripGlossTag(str) {
 }
 
 function getActiveCategory() {
+  if (_activeMinor) return _activeMinor;
   if (_activeMajor === 'accessory') return 'accessory';
-  return _activeMinor || '';
+  return '';
+}
+
+function updateCutGroupForAccessory(minor) {
+  const allowed = ACC_CUTS[minor] || [];
+  document.getElementById('cut-group').querySelectorAll('.chip').forEach(btn => {
+    const show = allowed.includes(btn.dataset.value);
+    const wrapper = btn.parentElement.tagName === 'SPAN' ? btn.parentElement : btn;
+    wrapper.style.display = show ? '' : 'none';
+    if (!show) btn.classList.remove('active');
+  });
+}
+
+function resetCutGroup() {
+  document.getElementById('cut-group').querySelectorAll('.chip').forEach(btn => {
+    const wrapper = btn.parentElement.tagName === 'SPAN' ? btn.parentElement : btn;
+    wrapper.style.display = '';
+  });
 }
 
 function renderSubGroup(major) {
@@ -2213,7 +2250,8 @@ function renderSubGroup(major) {
   const subs = SUB_CATEGORIES[major] || [];
   subGroup.innerHTML = '';
   _activeMinor = '';
-  updateLengthChips('');
+  resetCutGroup();
+  if (major === 'clothing') updateLengthChips('');
   if (!subs.length) {
     subWrap.classList.remove('visible');
     return;
@@ -2227,7 +2265,11 @@ function renderSubGroup(major) {
       subGroup.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       _activeMinor = value;
-      updateLengthChips(value);
+      if (major === 'clothing') {
+        updateLengthChips(value);
+      } else if (major === 'accessory') {
+        updateCutGroupForAccessory(value);
+      }
       saveState();
       updateProgressBar();
     });
@@ -2527,6 +2569,9 @@ function buildAnalysisSystemPrompt(includeLength = false) {
   const CAT_LABEL = {
     'outer': '의류 > 아우터', 'top': '의류 > 상의', 'pants': '의류 > 바지',
     'skirt': '의류 > 스커트', 'dress': '의류 > 드레스', 'accessory': '악세',
+    'acc-keyring': '악세 > 인형키링', 'acc-hat': '악세 > 모자',
+    'acc-hair': '악세 > 헤어핀/헤어밴드/헤어클로우', 'acc-wallet': '악세 > 지갑/벨트',
+    'acc-scarf': '악세 > 스카프/장갑/목도리/파우치',
   };
 
   const CAT_FOCUS = {
@@ -2575,7 +2620,7 @@ function buildAnalysisSystemPrompt(includeLength = false) {
 
   const catKey   = minor;
   const catLabel = CAT_LABEL[catKey] || ({ clothing: '의류', accessory: '악세' }[_activeMajor] || _activeMajor);
-  const catFocus = CAT_FOCUS[catKey] || '';
+  const catFocus = CAT_FOCUS[catKey] || (_activeMajor === 'accessory' ? CAT_FOCUS['accessory'] : '');
 
   return `You are an expert fashion product analyst specializing in e-commerce product photography.
 Current product category: ${catLabel}
@@ -2737,7 +2782,10 @@ function setCopyEnabled(on) {
 
 function validatePromptInputs() {
   const errors = [];
-  if (!getActiveCategory())                                    errors.push('카테고리를 선택하세요.');
+  if (!_activeMajor)                                           errors.push('카테고리를 선택하세요.');
+  else if (_activeMajor === 'clothing' && !_activeMinor)       errors.push('의류 소분류를 선택하세요.');
+  else if (_activeMajor === 'accessory' && !_activeMinor)      errors.push('악세 소분류를 선택하세요.');
+  if (errors.length) return errors;
   if (!getBackgroundValue())                                   errors.push('배경색을 선택하세요.');
   if (!getActiveChip('cut-group'))                             errors.push('컷 종류를 선택하세요.');
   if (!document.getElementById('material').value.trim())       errors.push('소재를 입력하세요.');
@@ -2844,7 +2892,7 @@ function buildPrompt(values) {
 
   let lines;
 
-  if (cut === 'detail') {
+  if (cut === 'detail' && !ACC_FLATLAY.has(category)) {
     const detailPart = getActiveChip('detail-part-group');
     const DETAIL_COMPOSITIONS = {
       'neckline':      `Detail close-up shot. Frame straight-on and level on the neckline area — the neckline must appear horizontal and symmetrical. Show collar/neckline structure and upper chest area. Natural margin at top (background visible above neckline). Do NOT tilt or angle the frame.`,
@@ -2960,17 +3008,44 @@ function buildPrompt(values) {
       ...extras,
     ];
 
-  } else {
-    /* 악세 */
+  } else if (ACC_FLATLAY.has(category)) {
+    /* 악세 — 플랫레이 (스카프 / 장갑 / 목도리 / 파우치) */
+    if (cut === 'detail') {
+      lines = [
+        `Product flat lay close-up shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
+        `Flat lay composition — product is laid flat on a surface. Camera shoots straight from directly overhead (top-down, perpendicular to surface). Frame focuses on a specific detail area of the product.`,
+        `Retouch lightly — remove lint and dust only. Preserve natural texture and authentic material character.`,
+        `Relight with soft, even overhead studio lighting. Natural subtle shadow to emphasize texture and depth.`,
+        buildMatLine(material, color, values.detail),
+        `Render all details sharply and accurately. Professional e-commerce flat lay close-up. No stylization, no artistic effects, no color distortion.`,
+        ...extras,
+      ];
+    } else {
+      const flatlayView = cut === 'back' ? 'Back side facing up' : 'Front side facing up';
+      lines = [
+        `Product flat lay shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
+        `Flat lay composition — the product is laid flat on a surface and photographed from directly overhead (top-down view, camera perpendicular to the surface). ${flatlayView}. No mannequin, no model, no hanger, no stool, no body form, no props.`,
+        `Center the product with equal margins on all sides. The entire product must be fully visible — do NOT crop any part of it.`,
+        `Relight with soft, even overhead studio lighting. Subtle natural shadow around the product edges only. No harsh directional shadows.`,
+        buildMatLine(material, color, values.detail),
+        `Preserve exact product shape, proportions, surface texture, and any pattern or print accurately.`,
+        `Do not change the product's structure, pattern, or color in any way.`,
+        `Clean e-commerce flat lay shot. No stylization, no artistic effects, no color distortion.`,
+        ...extras,
+      ];
+    }
+
+  } else if (category.startsWith('acc-') || category === 'accessory') {
+    /* 악세 — 스툴컷 (인형키링 / 모자 / 헤어핀 / 지갑 / 벨트) */
     lines = [
-      `Remove the existing background completely and replace with a solid ${bg} background.`,
-      `Keep the product exactly as shown, ${cutView} view, centered composition.`,
-      ...(cut !== 'detail' ? [MARGIN_LINE] : []),
+      `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
+      `${cutView} view, centered composition. Clean catalog product shot. No mannequin, no model, no hanger, no hands, no props.`,
+      `Center the product with equal margins on all sides. The entire product must be fully visible — do NOT crop any part of it.`,
       `Relight with soft, even studio lighting. Subtle shadow beneath the product only.`,
       buildMatLine(material, color, values.detail),
       `Preserve exact product shape, proportions, surface texture, and logo detail accurately.`,
       `Ensure logo remains sharp and clearly readable.`,
-      `Clean e-commerce product shot. No stylization, no artistic effects.`,
+      `Clean e-commerce product shot. No stylization, no artistic effects, no color distortion.`,
       ...extras,
     ];
   }
@@ -3068,6 +3143,7 @@ function resetAll() {
   document.querySelectorAll('#gloss-group .gloss-chip').forEach(b => b.classList.remove('active'));
   updateLengthChips('');
   document.querySelectorAll('#cut-group .chip').forEach(b => b.classList.remove('active'));
+  resetCutGroup();
   document.querySelectorAll('#bg-group .color-chip').forEach(b => b.classList.remove('active'));
   localStorage.removeItem('ppb_state');
   clearSavedImages();
@@ -3237,7 +3313,10 @@ const LS_HISTORY  = 'ppb_history';
 const MAX_HISTORY = 7;
 
 function getCategoryLabel(major, minor) {
-  if (major === 'accessory') return '악세';
+  if (major === 'accessory') {
+    const sub = (SUB_CATEGORIES.accessory || []).find(s => s.value === minor);
+    return sub ? `악세 > ${sub.label}` : '악세';
+  }
   if (major === 'clothing') {
     const sub = (SUB_CATEGORIES.clothing || []).find(s => s.value === minor);
     return sub ? sub.label : '의류';
@@ -3315,6 +3394,13 @@ function restoreFromHistory(entry) {
         b.classList.toggle('active', b.dataset.value === entry.length);
       });
     }
+  }
+  if (entry.minor && _activeMajor === 'accessory') {
+    _activeMinor = entry.minor;
+    document.querySelectorAll('#category-sub-group .chip').forEach(b => {
+      b.classList.toggle('active', b.dataset.value === entry.minor);
+    });
+    updateCutGroupForAccessory(entry.minor);
   }
 
   // 3. 소재 (글로스 태그 포함 재조합)
