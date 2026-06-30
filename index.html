@@ -3035,6 +3035,21 @@ function buildPrompt(values) {
       ];
     }
 
+  } else if (category === 'acc-hat' && cut === 'back') {
+    /* 모자 — 후면컷 전용 */
+    lines = [
+      `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
+      `Back view, centered straight-on composition. The hat is displayed floating in air, rear-facing, showing the full back panel, rear opening, and closure hardware. No stool, no surface, no mannequin, no hands, no props.`,
+      `Center the hat with equal left and right margins. Top margin: approximately 10% of image height. Bottom margin: approximately 10% of image height. The ENTIRE hat must be fully visible including the full crown top and the closure strap at the bottom.`,
+      `Retouch thoroughly — remove lint, dust, and minor surface irregularities. Smooth out any slight distortions in the crown shape while preserving the natural fabric texture and corduroy rib pattern. Keep the overall silhouette clean and well-defined.`,
+      `Relight with soft, even studio lighting from the front. Subtle drop shadow beneath the hat for natural depth. No harsh shadows on the background.`,
+      `IMPORTANT: Preserve the EXACT shape, proportions, and color of the original hat. The hat must be perfectly symmetrical on the vertical center axis.`,
+      buildMatLine(material, color, values.detail),
+      `Keep embroidered text and logo details sharp, clean, and readable. Render metal closure hardware accurately with clean edges and realistic highlights.`,
+      `Professional e-commerce product shot. No stylization, no artistic effects, no color distortion.`,
+      ...extras,
+    ];
+
   } else if (category === 'acc-hat' && cut === 'three-quarter') {
     /* 모자 — 반측면컷 전용 */
     lines = [
