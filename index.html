@@ -115,6 +115,30 @@
       text-transform: uppercase;
       margin-bottom: 10px;
     }
+    .provider-selector {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .provider-btn {
+      flex: 1;
+      padding: 5px 0;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 8px;
+      background: #fff;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gray-500);
+      cursor: pointer;
+      transition: border-color .15s, background .15s, color .15s;
+    }
+    .provider-btn:hover { border-color: var(--gray-400); }
+    .provider-btn.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
 
     /* ── Main content — 2컬럼 그리드, 전체 높이 ── */
     .main-content {
@@ -1237,21 +1261,49 @@
       </svg>
     </button>
     <div class="api-dropdown" id="api-dropdown">
-      <p class="api-dropdown-label">Claude API Key</p>
-      <div class="field">
-        <div class="input-wrap">
-          <input type="password" id="claude-key" placeholder="sk-ant-..." autocomplete="off" />
-          <button class="eye-btn" data-target="claude-key" aria-label="보기">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
+      <p class="api-dropdown-label">API 제공자</p>
+      <div class="provider-selector">
+        <button class="provider-btn active" data-value="claude">Claude</button>
+        <button class="provider-btn" data-value="openai">OpenAI</button>
+      </div>
+      <!-- Claude 키 -->
+      <div id="claude-key-wrap">
+        <p class="api-dropdown-label">Claude API Key</p>
+        <div class="field">
+          <div class="input-wrap">
+            <input type="password" id="claude-key" placeholder="sk-ant-..." autocomplete="off" />
+            <button class="eye-btn" data-target="claude-key" aria-label="보기">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="api-key-status">
+            <span class="status-dot" id="claude-dot"></span>
+            <span id="claude-status">미입력</span>
+            <span style="color:var(--gray-300);margin:0 4px;">·</span>
+            <span style="color:var(--gray-400);font-size:11px;">브라우저에만 저장됨</span>
+          </div>
         </div>
-        <div class="api-key-status">
-          <span class="status-dot" id="claude-dot"></span>
-          <span id="claude-status">미입력</span>
-          <span style="color:var(--gray-300);margin:0 4px;">·</span>
-          <span style="color:var(--gray-400);font-size:11px;">브라우저에만 저장됨</span>
+      </div>
+      <!-- OpenAI 키 -->
+      <div id="openai-key-wrap" style="display:none;">
+        <p class="api-dropdown-label">OpenAI API Key</p>
+        <div class="field">
+          <div class="input-wrap">
+            <input type="password" id="openai-key" placeholder="sk-..." autocomplete="off" />
+            <button class="eye-btn" data-target="openai-key" aria-label="보기">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="api-key-status">
+            <span class="status-dot" id="openai-dot"></span>
+            <span id="openai-status">미입력</span>
+            <span style="color:var(--gray-300);margin:0 4px;">·</span>
+            <span style="color:var(--gray-400);font-size:11px;">브라우저에만 저장됨</span>
+          </div>
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-top:12px;">
@@ -2178,6 +2230,7 @@ let _detectedLength = ''; // 후면컷 슬롯2 분석 기장
 let _analysisComplete = false;
 let _promptGenerated  = false;
 let _restoring = false; // 복원 중에는 saveState 차단
+let _apiProvider = 'claude'; // 'claude' | 'openai'
 
 function updateProgressBar() {
   const cut      = getActiveChip('cut-group');
@@ -2393,32 +2446,59 @@ document.querySelectorAll('.eye-btn').forEach(btn => {
 });
 
 /* ═══════════════════════════════════════════════
-   5. API 키 — localStorage
+   5. API 키 — localStorage + 제공자 선택
 ═══════════════════════════════════════════════ */
-function loadKeys() {
-  const ck = localStorage.getItem('claude_api_key') || '';
-  document.getElementById('claude-key').value = ck;
-  setKeyStatus('claude-dot', 'claude-status', ck);
+function updateHeaderDot() {
+  const headerDot = document.getElementById('api-header-dot');
+  const key = _apiProvider === 'openai'
+    ? localStorage.getItem('openai_api_key')
+    : localStorage.getItem('claude_api_key');
+  if (key) headerDot?.classList.add('saved');
+  else     headerDot?.classList.remove('saved');
 }
 function setKeyStatus(dotId, statusId, value) {
-  const dot       = document.getElementById(dotId);
-  const lbl       = document.getElementById(statusId);
-  const headerDot = document.getElementById('api-header-dot');
-  if (value) {
-    dot.classList.add('saved');
-    lbl.textContent = '저장됨';
-    headerDot?.classList.add('saved');
-  } else {
-    dot.classList.remove('saved');
-    lbl.textContent = '미입력';
-    headerDot?.classList.remove('saved');
-  }
+  const dot = document.getElementById(dotId);
+  const lbl = document.getElementById(statusId);
+  if (value) { dot.classList.add('saved');    lbl.textContent = '저장됨'; }
+  else        { dot.classList.remove('saved'); lbl.textContent = '미입력'; }
+  updateHeaderDot();
+}
+function applyProviderUI() {
+  const isOpenAI = _apiProvider === 'openai';
+  document.getElementById('claude-key-wrap').style.display = isOpenAI ? 'none' : '';
+  document.getElementById('openai-key-wrap').style.display = isOpenAI ? '' : 'none';
+  document.querySelectorAll('.provider-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.value === _apiProvider);
+  });
+  updateHeaderDot();
+}
+function loadKeys() {
+  _apiProvider = localStorage.getItem('api_provider') || 'claude';
+  const ck = localStorage.getItem('claude_api_key') || '';
+  const ok = localStorage.getItem('openai_api_key') || '';
+  document.getElementById('claude-key').value = ck;
+  document.getElementById('openai-key').value = ok;
+  setKeyStatus('claude-dot', 'claude-status', ck);
+  setKeyStatus('openai-dot', 'openai-status', ok);
+  applyProviderUI();
 }
 document.getElementById('save-keys-btn').addEventListener('click', () => {
   const ck = document.getElementById('claude-key').value.trim();
+  const ok = document.getElementById('openai-key').value.trim();
   if (ck) localStorage.setItem('claude_api_key', ck);
   else    localStorage.removeItem('claude_api_key');
+  if (ok) localStorage.setItem('openai_api_key', ok);
+  else    localStorage.removeItem('openai_api_key');
+  localStorage.setItem('api_provider', _apiProvider);
   setKeyStatus('claude-dot', 'claude-status', ck);
+  setKeyStatus('openai-dot', 'openai-status', ok);
+});
+document.querySelectorAll('.provider-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    _apiProvider = btn.dataset.value;
+    localStorage.setItem('api_provider', _apiProvider);
+    applyProviderUI();
+  });
 });
 loadKeys();
 
@@ -2662,9 +2742,12 @@ sheen_level: set to one of full_matte / semi_matte / semi_glossy / high_gloss fo
 }
 
 async function analyzeImageWithClaude(items) {
-  const apiKey = localStorage.getItem('claude_api_key');
+  const provider = _apiProvider;
+  const apiKey = provider === 'openai'
+    ? localStorage.getItem('openai_api_key')
+    : localStorage.getItem('claude_api_key');
   if (!apiKey) {
-    showBanner('error', 'Claude API 키를 먼저 저장해 주세요.');
+    showBanner('error', `${provider === 'openai' ? 'OpenAI' : 'Claude'} API 키를 먼저 저장해 주세요.`);
     setTimeout(hideBanner, 3000);
     return;
   }
@@ -2676,16 +2759,9 @@ async function analyzeImageWithClaude(items) {
   const needsLength = activeCut === 'back' && !!slot2Item;
 
   setFieldsAnalyzing(true);
-  showBanner('loading', `Claude AI가 이미지 ${items.length}장을 분석 중입니다...`);
+  showBanner('loading', `${provider === 'openai' ? 'OpenAI' : 'Claude'} AI가 이미지 ${items.length}장을 분석 중입니다...`);
 
   try {
-    const imageContent = [];
-    for (const item of items) {
-      const { base64, mediaType } = await resizeImageForClaude(item.file);
-      imageContent.push({ type: 'text', text: `Slot ${item.index + 1}: ${item.note}` });
-      imageContent.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } });
-    }
-
     const SLOT_LABELS = ['메인 이미지', '디테일 1', '디테일 2', '디테일 3', '디테일 4'];
     const slotDescLines = items
       .map(item => {
@@ -2696,37 +2772,79 @@ async function analyzeImageWithClaude(items) {
       })
       .filter(Boolean);
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
-        system: buildAnalysisSystemPrompt(needsLength),
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text', text: 'Analyze these product images and consolidate the result.' },
-            ...(slotDescLines.length ? [{ type: 'text', text: slotDescLines.join('\n') }] : []),
-            ...(needsLength ? [{ type: 'text', text: 'Slot 2는 완성된 정면 결과물입니다. detected_length 필드에 Slot 2 이미지의 기장감을 분석해 반환해 주세요.' }] : []),
-            ...imageContent,
-          ],
-        }],
-      }),
-    });
+    let text;
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API 오류 (${res.status})`);
+    if (provider === 'openai') {
+      const msgContent = [];
+      for (const item of items) {
+        const { base64, mediaType } = await resizeImageForClaude(item.file);
+        msgContent.push({ type: 'text', text: `Slot ${item.index + 1}: ${item.note}` });
+        msgContent.push({ type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}` } });
+      }
+      if (slotDescLines.length) msgContent.push({ type: 'text', text: slotDescLines.join('\n') });
+      if (needsLength) msgContent.push({ type: 'text', text: 'Slot 2는 완성된 정면 결과물입니다. detected_length 필드에 Slot 2 이미지의 기장감을 분석해 반환해 주세요.' });
+      msgContent.push({ type: 'text', text: 'Analyze these product images and consolidate the result.' });
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          max_tokens: 1500,
+          messages: [
+            { role: 'system', content: buildAnalysisSystemPrompt(needsLength) },
+            { role: 'user', content: msgContent },
+          ],
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `API 오류 (${res.status})`);
+      }
+      const data = await res.json();
+      text = data.choices?.[0]?.message?.content || '';
+    } else {
+      const imageContent = [];
+      for (const item of items) {
+        const { base64, mediaType } = await resizeImageForClaude(item.file);
+        imageContent.push({ type: 'text', text: `Slot ${item.index + 1}: ${item.note}` });
+        imageContent.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } });
+      }
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1500,
+          system: buildAnalysisSystemPrompt(needsLength),
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Analyze these product images and consolidate the result.' },
+              ...(slotDescLines.length ? [{ type: 'text', text: slotDescLines.join('\n') }] : []),
+              ...(needsLength ? [{ type: 'text', text: 'Slot 2는 완성된 정면 결과물입니다. detected_length 필드에 Slot 2 이미지의 기장감을 분석해 반환해 주세요.' }] : []),
+              ...imageContent,
+            ],
+          }],
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `API 오류 (${res.status})`);
+      }
+      const data = await res.json();
+      text = data.content?.[0]?.text || '';
     }
 
-    const data  = await res.json();
-    const text  = data.content?.[0]?.text || '';
     const raw   = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) {
@@ -2737,9 +2855,9 @@ async function analyzeImageWithClaude(items) {
     const result = JSON.parse(match[0]);
 
     if (needsLength && result.detected_length) {
-      const raw  = result.detected_length.trim().toLowerCase();
+      const rawLen = result.detected_length.trim().toLowerCase();
       const DMAP = { 'waist-length': 'waist', 'hip-length': 'hip', 'ankle-length': 'ankle', 'full-length': 'full' };
-      _detectedLength = DMAP[raw] || (LENGTH_PROMPTS[raw] ? raw : '');
+      _detectedLength = DMAP[rawLen] || (LENGTH_PROMPTS[rawLen] ? rawLen : '');
     }
 
     if (!fieldLocks.material) document.getElementById('material').value   = result.material || '';
@@ -2753,7 +2871,7 @@ async function analyzeImageWithClaude(items) {
     updateProgressBar();
 
   } catch (err) {
-    console.error('[Claude 분석 오류]', err);
+    console.error('[분석 오류]', err);
     showBanner('error', `분석 실패: ${err.message}`);
     setTimeout(hideBanner, 4000);
   } finally {
@@ -2816,36 +2934,66 @@ async function translatePromptFieldsToEnglish(values) {
   const sourceKey = JSON.stringify(values);
   if (translationCache?.sourceKey === sourceKey) return translationCache.values;
 
-  const apiKey = localStorage.getItem('claude_api_key');
-  if (!apiKey) throw new Error('Claude API 키를 먼저 저장해 주세요.');
+  const provider = _apiProvider;
+  const apiKey = provider === 'openai'
+    ? localStorage.getItem('openai_api_key')
+    : localStorage.getItem('claude_api_key');
+  if (!apiKey) throw new Error(`${provider === 'openai' ? 'OpenAI' : 'Claude'} API 키를 먼저 저장해 주세요.`);
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
-      system: `Translate Korean fashion product attributes into concise English phrases for an image generation prompt.
-Respond in JSON only: {"material": "", "details": "", "color": ""}`,
-      messages: [{
-        role: 'user',
-        content: [{ type: 'text', text: `material: ${values.material}\ndetails: ${values.detail}\ncolor: ${values.color}` }],
-      }],
-    }),
-  });
+  const systemMsg = `Translate Korean fashion product attributes into concise English phrases for an image generation prompt.
+Respond in JSON only: {"material": "", "details": "", "color": ""}`;
+  const userMsg = `material: ${values.material}\ndetails: ${values.detail}\ncolor: ${values.color}`;
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `영문 변환 오류 (${res.status})`);
+  let text;
+  if (provider === 'openai') {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 300,
+        messages: [
+          { role: 'system', content: systemMsg },
+          { role: 'user',   content: userMsg },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `영문 변환 오류 (${res.status})`);
+    }
+    const data = await res.json();
+    text = data.choices?.[0]?.message?.content || '';
+  } else {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        system: systemMsg,
+        messages: [{
+          role: 'user',
+          content: [{ type: 'text', text: userMsg }],
+        }],
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `영문 변환 오류 (${res.status})`);
+    }
+    const data = await res.json();
+    text = data.content?.[0]?.text || '';
   }
 
-  const data  = await res.json();
-  const text  = data.content?.[0]?.text || '';
   const cleaned = text.replace(/```json|```/g, '').trim();
   const match = cleaned.match(/\{[\s\S]*\}/);
   if (!match) throw new Error('영문 변환 결과를 파싱할 수 없습니다.');
