@@ -2177,6 +2177,7 @@ let _activeLength   = ''; // 기장 퀵셀렉터
 let _detectedLength = ''; // 후면컷 슬롯2 분석 기장
 let _analysisComplete = false;
 let _promptGenerated  = false;
+let _restoring = false; // 복원 중에는 saveState 차단
 
 function updateProgressBar() {
   const cut      = getActiveChip('cut-group');
@@ -3252,11 +3253,13 @@ function openDB() {
 
 let _saveTimer = null;
 function debouncedSave() {
+  if (_restoring) return;
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(saveState, 500);
 }
 
 function saveState() {
+  if (_restoring) return;
   try {
     const state = {
       material:     stripGlossTag(document.getElementById('material').value),
@@ -3357,6 +3360,7 @@ async function restoreImages() {
 }
 
 async function restoreState() {
+  _restoring = true;
   try {
     const raw = localStorage.getItem(LS_STATE);
     if (raw) {
@@ -3444,6 +3448,8 @@ async function restoreState() {
 
   await restoreImages();
   localStorage.removeItem('ppb_images'); // 구 localStorage 이미지 데이터 정리
+  _restoring = false;
+  console.log('[ppb] 복원 완료');
   updateProgressBar();
 }
 
@@ -3790,7 +3796,7 @@ document.querySelectorAll('.glossary-tab').forEach(tab => {
 });
 document.getElementById('glossary-search').addEventListener('input', renderGlossary);
 
-restoreState().then(() => updateProgressBar());
+restoreState();
 </script>
 </body>
 </html>
