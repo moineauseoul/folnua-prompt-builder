@@ -187,15 +187,15 @@
       border: none;
       transition: background .2s;
       /* 중간 스텝: 왼쪽 노치 + 오른쪽 화살표 */
-      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%);
+      clip-path: polygon(0 0, calc(100% - 17px) 0, 100% 50%, calc(100% - 17px) 100%, 0 100%, 17px 50%);
     }
     /* 첫 번째 스텝: 왼쪽 노치 없음 */
     .progress-steps .progress-step:first-child {
-      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%);
+      clip-path: polygon(0 0, calc(100% - 17px) 0, 100% 50%, calc(100% - 17px) 100%, 0 100%);
     }
     /* 마지막 스텝: 오른쪽 화살표 없음 */
     .progress-steps .progress-step:last-child {
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 16px 50%);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 17px 50%);
     }
     .pstep-main {
       font-size: 12px; font-weight: 500;
