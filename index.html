@@ -166,12 +166,11 @@
     }
     .progress-steps {
       display: flex;
+      overflow: hidden;
+      border-radius: 6px;
+      border: 1px solid #dddddd;
       width: 100%;
       height: 44px;
-      border-radius: 6px;
-      overflow: hidden;
-      background: #1a1a1a;
-      gap: 0;
     }
     .progress-step {
       flex: 1 1 0%;
@@ -182,19 +181,42 @@
       justify-content: center;
       gap: 2px;
       min-width: 0;
-      padding: 0 22px 0 26px;
+      padding: 0 24px;
       background: #ffffff;
       transition: background .2s;
-      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%);
+      margin-right: -16px;
     }
-    .progress-steps .progress-step:first-child {
-      padding-left: 16px;
-      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
+    .progress-steps .progress-step:last-child { margin-right: 0; }
+    .progress-steps .progress-step:nth-child(1) { z-index: 6; }
+    .progress-steps .progress-step:nth-child(2) { z-index: 5; }
+    .progress-steps .progress-step:nth-child(3) { z-index: 4; }
+    .progress-steps .progress-step:nth-child(4) { z-index: 3; }
+    .progress-steps .progress-step:nth-child(5) { z-index: 2; }
+    .progress-steps .progress-step:nth-child(6) { z-index: 1; }
+    .progress-step::after {
+      content: '';
+      position: absolute;
+      top: 0; right: -16px;
+      width: 0; height: 0;
+      border-top: 22px solid transparent;
+      border-bottom: 22px solid transparent;
+      border-left: 16px solid #ffffff;
+      transition: border-left-color .2s;
+      z-index: 2;
     }
-    .progress-steps .progress-step:last-child {
-      padding-right: 16px;
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 14px 50%);
+    .progress-step::before {
+      content: '';
+      position: absolute;
+      top: 0; right: -18px;
+      width: 0; height: 0;
+      border-top: 22px solid transparent;
+      border-bottom: 22px solid transparent;
+      border-left: 18px solid #dddddd;
+      transition: border-left-color .2s;
+      z-index: 1;
     }
+    .progress-steps .progress-step:last-child::after,
+    .progress-steps .progress-step:last-child::before { display: none; }
     .pstep-main {
       font-size: 12px; font-weight: 500;
       color: #666666;
@@ -206,15 +228,16 @@
       font-size: 10px; color: #bbb;
       white-space: nowrap; line-height: 1;
     }
-    /* done */
     .pstep-done { background: #1a1a1a; }
+    .pstep-done::after  { border-left-color: #1a1a1a; }
+    .pstep-done::before { border-left-color: #1a1a1a; }
     .pstep-done .pstep-main { color: #fff; font-weight: 600; }
     .pstep-done .pstep-opt  { color: rgba(255,255,255,.5); }
-    /* active */
     .pstep-active { background: #aaaaaa; }
+    .pstep-active::after  { border-left-color: #aaaaaa; }
+    .pstep-active::before { border-left-color: #aaaaaa; }
     .pstep-active .pstep-main { color: #fff; font-weight: 500; }
     .pstep-active .pstep-opt  { color: rgba(255,255,255,.7); }
-    /* optional / pending — 흰 배경 */
     .pstep-optional { background: #ffffff; }
     .pstep-optional .pstep-main { color: #666666; }
     .pstep-optional .pstep-opt  { color: #bbb; }
