@@ -3112,7 +3112,7 @@ function buildPrompt(values) {
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
       `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The pants are displayed flat, showing their natural silhouette and shape from the front. No body shape, no volume suggesting a person wearing it.`,
       ...(cut !== 'detail' ? [MARGIN_LINE] : []),
-      `Remove excessive wrinkles but preserve the natural texture and character of the fabric. Keep center front and back creases crisp and clean.`,
+      `Remove excessive wrinkles and smooth out surface irregularities. Keep center front and back creases crisp and clean. The fabric surface must appear flat, uniform, and consistent — do NOT add texture variation, grain, or surface shading that is not present in the reference image.`,
       `Relight with soft, even studio lighting from the front. No shadows on the background.`,
       buildMatLine(material, color, detailWithLength),
       `Preserve the exact silhouette, design, and proportions of the garment.`,
