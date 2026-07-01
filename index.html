@@ -3075,8 +3075,11 @@ function buildPrompt(values) {
       'pocket-bottom': `Detail close-up shot. Frame straight-on and level. The pocket must be the main subject. Position the pocket toward the inner-center of the frame — leave margin at the top and on the outer side (left margin if it is a right-side pocket, right margin if it is a left-side pocket), just as the pocket appears in the reference image. Leave clear margin at the top (waistband visible but with breathing room above it) and on the outer side. The pocket should sit in the lower-inner portion of the frame, not pushed to the very edge. Do NOT center the pocket perfectly in the middle — follow the natural asymmetric positioning from the reference. The full pocket stitching and closure detail must be fully visible. Reproduce the pocket exactly as it appears in the reference image — do not add, remove, or alter any stitching or structural details. Do NOT tilt or angle the frame.`,
       'fabric':        `Extreme fabric close-up shot. Fill the entire frame with fabric surface texture. No background visible — fabric fills edge to edge. Two parallel diagonal fold lines run across the center of the frame, evenly spaced, parallel to each other, creating gentle raised ridges with soft shadow on one side. The folds are medium in height — not flat creases, not puffy rolls. They divide the frame into three roughly equal horizontal bands. Show the tactile quality, weave structure, and material depth.`,
     };
+    const DETAIL_COMPOSITIONS_BACK = {
+      'neckline': `Detail close-up shot. Frame straight-on and level on the BACK neckline area — this is the rear view of the garment. The back neckline/nape line must appear horizontal and symmetrical. Show the back collar line, shoulder seams, and upper back panel area. Do NOT show or imply any front-facing chest structure, chest curve, or bust area. Natural margin at top (background visible above the neckline). Do NOT tilt or angle the frame.`,
+    };
     const compositionLine = detailPart
-      ? DETAIL_COMPOSITIONS[detailPart]
+      ? (cut === 'back' && DETAIL_COMPOSITIONS_BACK[detailPart] ? DETAIL_COMPOSITIONS_BACK[detailPart] : DETAIL_COMPOSITIONS[detailPart])
       : `Detail close-up shot. Frame straight-on and level. Do NOT tilt or angle the frame.`;
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
