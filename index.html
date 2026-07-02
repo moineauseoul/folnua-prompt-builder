@@ -1854,6 +1854,7 @@ const LENGTH_PROMPTS = {
   'crop':          'cropped length, above the waist',
   'semi-crop':     'semi-crop length, at the waist',
   'waist':         'waist-length',
+  'upper-hip':     'below-waist length (hemline sits just below the waist, covering the upper hip)',
   'hip':           'hip-length',
   'regular':       'regular length',
   'longline':      'longline, below the hip',
@@ -1866,8 +1867,8 @@ const LENGTH_PROMPTS = {
   'full':          'full-length',
 };
 const LENGTH_OPTIONS = {
-  top:   [['크롭','crop'],['세미크롭','semi-crop'],['허리기장','waist'],['힙기장','hip'],['일반','regular'],['롱라인','longline']],
-  outer: [['크롭','crop'],['힙기장','hip'],['3/4기장','three-quarter'],['무릎기장','knee'],['미디','midi'],['맥시','maxi']],
+  top:   [['크롭','crop'],['세미크롭','semi-crop'],['허리기장','waist'],['골반기장','upper-hip'],['힙기장','hip'],['일반','regular'],['롱라인','longline']],
+  outer: [['크롭','crop'],['골반기장','upper-hip'],['힙기장','hip'],['3/4기장','three-quarter'],['무릎기장','knee'],['미디','midi'],['맥시','maxi']],
   pants: [['미니','mini'],['미디','midi'],['맥시','maxi'],['발목','ankle'],['풀렝스','full']],
   skirt: [['미니','mini'],['미디','midi'],['맥시','maxi'],['발목','ankle'],['풀렝스','full']],
   dress: [['미니','mini'],['미디','midi'],['맥시','maxi'],['발목','ankle'],['풀렝스','full']],
