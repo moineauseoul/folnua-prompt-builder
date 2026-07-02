@@ -3108,9 +3108,13 @@ function buildPrompt(values) {
     ];
 
   } else if (category === 'pants') {
+    const isMiniLength = _activeLength === 'mini' || _detectedLength === 'mini';
+    const pantsCompositionLine = isMiniLength
+      ? `Front view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The pants are displayed as a flat hanging product shot — hanging naturally from the waistband, showing their natural silhouette and shape from the front. No body shape, no volume suggesting a person wearing it.`
+      : `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The pants are displayed flat, showing their natural silhouette and shape from the front. No body shape, no volume suggesting a person wearing it.`;
     lines = [
       `Product retouching shot for e-commerce. Remove the existing background completely and replace with a solid ${bg} background.`,
-      `${cutView} view, centered straight-on composition. Clean catalog product shot. No hanger, no mannequin, no model, no hands, no props. The pants are displayed flat, showing their natural silhouette and shape from the front. No body shape, no volume suggesting a person wearing it.`,
+      pantsCompositionLine,
       ...(cut !== 'detail' ? [MARGIN_LINE] : []),
       `Remove excessive wrinkles and smooth out surface irregularities. Keep center front and back creases crisp and clean. The fabric surface must appear flat, uniform, and consistent — do NOT add texture variation, grain, or surface shading that is not present in the reference image.`,
       `Relight with soft, even studio lighting from the front. No shadows on the background.`,
