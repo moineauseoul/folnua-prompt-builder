@@ -3124,7 +3124,7 @@ function buildPrompt(values) {
       `Do not change the clothing structure, pattern, or color in any way.`,
       `Any brand logo or emblem must be small and subtle, exactly as shown in the reference. Do not enlarge or exaggerate the logo.`,
       `Professional e-commerce product shot. No stylization, no artistic effects, no color distortion.`,
-      ...extras,
+      ...extras.filter(p => p !== 'Preserve the natural drape and flow of the fabric. Do not over-smooth or flatten the material — maintain its natural soft movement and character.'),
     ];
 
   } else if (category === 'skirt') {
